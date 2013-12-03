@@ -1,0 +1,203 @@
+.include "nominal.jsim"
+.include "stdcell.jsim"
+.include "stdalu.jsim"
+.include "harness.jsim"
+
+.subckt cxn a b
+.connect a b
+.ends
+
+
+.subckt pc clk reset pcsel[2:0] jt[31:2] bt[30:2] ia[31:0] pc4_[31:0]
+
+.connect ia[1:0] 0
+.connect pc4_[1:0] 0
+.connect pc4_[31] ia[31]
+.connect bt[31] ia[31]
+.connect bt[1:0] 0
+.connect d[1:0] 0
+
+Xpc4 ia[30:2] 0#28 vdd  c[29:2] 0 pc4_[30:2] c[30:2] fulladder
+
+Xjt31 ia[31] jt[31] _jt31 and2
+Xirl   pcsel[2]#2    0 vdd    vdd 0   irl[1:0]    mux2
+Xirlp  pcsel[2]#2 pcsel[1:0] vdd#2 _pcsel[1:0] mux2
+
+Xpcsel _pcsel[0]#30 _pcsel[1]#30
++ ia[31] pc4_[30:2]
++ ia[31] bt[30:2]
++ _jt31 jt[30:2]
++ vdd 0#27 irl[1:0]
++ _d[31:2] mux4
+Xreset reset#30 _d[31:2] vdd 0#29 d[31:2] mux2
+
+Xregpc d[31:2] clk#30 ia[31:2] dreg
+
+.ends
+
+
+.subckt regfile clk werf wasel ra2sel ra[4:0] rb[4:0] rc[4:0]
++ wdata[31:0] radata[31:0] rbdata[31:0]
+
+Xwa wasel#5 rc[4:0] vdd#4 0 wa[4:0]  mux2
+
+Xregfile
++ vdd 0 0 ra[4:0] adata[31:0] // A read port
++ vdd 0 0 ra2mux[4:0] bdata[31:0] // B read port
++ 0 clk werf wa[4:0] wdata[31:0] // write port
++ $memory width=32 nlocations=31
+
+Xra2 ra2sel#5 rb[4:0] rc[4:0] ra2mux[4:0] mux2
+
+Xr31a1 ra[4:3] a1 nand2
+Xr31a2 ra[2:0] a2 nand3
+Xr31a3 a1 a2 r31a or2   // merge nor2 with subsequent inverter
+
+Xadata adata[31:0] r31a#32 radata[31:0] and2
+
+Xr31b1 ra2mux[4:3] b1 nand2
+Xr31b2 ra2mux[2:0] b2 nand3
+Xr31b3 b1 b2 r31b or2   // merge nor2 with subsequent inverter
+
+Xbdata bdata[31:0] r31b#32 rbdata[31:0] and2
+
+.ends
+
+
+.subckt ctl reset irq z id[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr
+
+* reset flag
+Xwr reset xwr 0 wr mux2
+
+* irq flag
+Xirq irq#8
++ _werf _wdsel[1:0] _wr _pcsel[2:0] _wasel
++   vdd         0#2   0     vdd 0 0    vdd
++  werf  wdsel[1:0] xwr  pcsel[2:0]  wasel
++ mux2
+
+
+* BEQ (0b011101) / BNE (0b011110)
+Xb0 z id[27] _z xor2
+Xb1 id[27:26] b1 xor2
+Xb2 id[31] b2 inverter
+Xb3 b1 b2 b3 nand2
+Xb4 id[30:28] b4 nand3
+Xb5 b3 b4 b_flag nor2
+Xb6 b_flag#3 __pcsel[2:0] 0 0 _z _pcsel[2:0] mux2
+
+* ROM
+Xctl vdd 0 0 id[31:26] // one read port
++ __pcsel[2:0] _wasel asel ra2sel bsel alufn[5:0] _wdsel[1:0] _werf moe _wr
++ $memory width=18 nlocations=64 contents=(
++ 0b011100000000000100 // opcode=0b000000
++ 0b011100000000000100 // opcode=0b000001
++ 0b011100000000000100 // opcode=0b000010
++ 0b011100000000000100 // opcode=0b000011
++ 0b011100000000000100 // opcode=0b000100
++ 0b011100000000000100 // opcode=0b000101
++ 0b011100000000000100 // opcode=0b000110
++ 0b011100000000000100 // opcode=0b000111
++ 0b011100000000000100 // opcode=0b001000
++ 0b011100000000000100 // opcode=0b001001
++ 0b011100000000000100 // opcode=0b001010
++ 0b011100000000000100 // opcode=0b001011
++ 0b011100000000000100 // opcode=0b001100
++ 0b011100000000000100 // opcode=0b001101
++ 0b011100000000000100 // opcode=0b001110
++ 0b011100000000000100 // opcode=0b001111
++ 0b011100000000000100 // opcode=0b010000
++ 0b011100000000000100 // opcode=0b010001
++ 0b011100000000000100 // opcode=0b010010
++ 0b011100000000000100 // opcode=0b010011
++ 0b011100000000000100 // opcode=0b010100
++ 0b011100000000000100 // opcode=0b010101
++ 0b011100000000000100 // opcode=0b010110
++ 0b011100000000000100 // opcode=0b010111
++ 0b000000100000010110 // opcode=0b011000 LD
++ 0b000001100000000001 // opcode=0b011001 ST
++ 0b011100000000000100 // opcode=0b011010 
++ 0b010000000000000100 // opcode=0b011011 JMP
++ 0b011100000000000100 // opcode=0b011100 
++ 0b000000000000000100 // opcode=0b011101 BEQ
++ 0b000000000000000100 // opcode=0b011110 BNE
++ 0b000010001101010110 // opcode=0b011111 LDR
++ 0b000000000000001100 // opcode=0b100000 ADD
++ 0b000000000000101100 // opcode=0b100001 SUB
++ 0b000000000000001100 // opcode=0b100010 MUL
++ 0b000000000000001100 // opcode=0b100011 DIV
++ 0b000000011001101100 // opcode=0b100100 CMPEQ
++ 0b000000011010101100 // opcode=0b100101 CMPLT
++ 0b000000011011101100 // opcode=0b100110 CMPLE
++ 0b011100000000000100 // opcode=0b100111 
++ 0b000000001100001100 // opcode=0b101000 AND
++ 0b000000001111001100 // opcode=0b101001 OR
++ 0b000000001011001100 // opcode=0b101010 XOR
++ 0b011100000000000100 // opcode=0b101011 
++ 0b000000010000001100 // opcode=0b101100 SHL
++ 0b000000010000101100 // opcode=0b101101 SHR
++ 0b000000010001101100 // opcode=0b101110 SRA
++ 0b011100000000000100 // opcode=0b101111 
++ 0b000000100000001100 // opcode=0b110000 ADDC
++ 0b000000100000101100 // opcode=0b110001 SUBC
++ 0b000000100000001100 // opcode=0b110010 MULC
++ 0b000000100000001100 // opcode=0b110011 DIVC
++ 0b000000111001101100 // opcode=0b110100 CMPEQC
++ 0b000000111010101100 // opcode=0b110101 CMPLTC
++ 0b000000111011101100 // opcode=0b110110 CMPLEC
++ 0b011100000000000100 // opcode=0b110111 
++ 0b000000101100001100 // opcode=0b111000 ANDC
++ 0b000000101111001100 // opcode=0b111001 ORC
++ 0b000000101011001100 // opcode=0b111010 XORC
++ 0b011100000000000100 // opcode=0b111011 
++ 0b000000110000001100 // opcode=0b111100 SHLC
++ 0b000000110000101100 // opcode=0b111101 SHRC
++ 0b000000110001101100 // opcode=0b111110 SRAC
++ 0b011100000000000100 // opcode=0b111111 
++ )
+
+.ends
+
+
+.subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
+
+* force supervisor bit override irq
+Xirq ia[31] irq 0 _irq mux2
+
+* PC
+Xpc clk reset pcsel[2:0] radata[31:2] pcb[30:2] ia[31:0] pc4_[31:0]  pc
+
+* CTL logic
+Xctl reset _irq z id[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr   ctl
+
+* pc branch offset
+Xpcb  pc4_[30:2]  id[14]#13 id[15:0]  c[29:2] 0  pcb[30:2]  c[30:2] fulladder
+.connect pcb[31] ia[31]
+.connect pcb[1:0] 0
+
+* registers
+Xregfile clk werf wasel ra2sel ra[4:0] rb[4:0] rc[4:0]
++        wdata[31:0] radata[31:0] rbdata[31:0]   regfile
+Xra id[20:16] ra[4:0] cxn
+Xrb id[15:11] rb[4:0] cxn
+Xrc id[25:21] rc[4:0] cxn
+
+* calculate Z
+Xznor radata[31:0] znor[7:0] nor4
+Xznan znor[7:0] znan[1:0] nand4
+Xzout znan[1:0] z nor2
+
+* ALU input
+Xasel asel#32 radata[31:0] 0 pcb[30:2] 0#2    a[31:0] mux2
+Xbsel bsel#32 rbdata[31:0] id[15]#16 id[15:0] b[31:0] mux2
+
+* ALU
+Xalu alufn[5:0] a[31:0] b[31:0] alu[31:0]             alu
+
+* write data selection
+Xwdsel wdsel[0]#32 wdsel[1]#32 pc4_[31:0] alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
+
+Xma  alu[31:0] ma[31:0] cxn
+Xmwd rbdata[31:0] mwd[31:0] cxn
+
+.ends
