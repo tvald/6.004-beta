@@ -1,3 +1,9 @@
+* CNXN *
+.subckt cnxn a b
+.connect a b
+.ends
+
+
 * FULL ADDER *
 .subckt fulladder a b ci s co
 Xxor1 a b  1 xor2
