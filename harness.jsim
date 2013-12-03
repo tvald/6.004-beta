@@ -28,8 +28,16 @@ Vreset reset 0 pwl(0ns 3.3v, 30ns 3.3v, 30.1ns 0v)
 // 1e-10/([area]e-12*[ns]e-9)
 
 // BMK = 28.24 @ 280753 mc2
-Vclk clk 0 pulse(3.3,0,5.65ns,.01ns,.01ns,5.65ns)
-.tran 12612ns
+Vclk clk 0 pulse(3.3,0,4.49ns,.01ns,.01ns,4.49ns)
+.tran 10036ns
+
+// BMK = 34.90 @ 285489 mc2
+//Vclk clk 0 pulse(3.3,0,4.49ns,.01ns,.01ns,4.49ns)
+//.tran 10036ns
+
+// BMK = 28.24 @ 280753 mc2
+//Vclk clk 0 pulse(3.3,0,5.65ns,.01ns,.01ns,5.65ns)
+//.tran 12612ns
 
 // BMK = 24.97 @ 276387 mc2
 //Vclk clk 0 pulse(3.3,0,4ns,.01ns,.01ns,7.67ns)
@@ -42,15 +50,24 @@ Vclk clk 0 pulse(3.3,0,5.65ns,.01ns,.01ns,5.65ns)
 
 
 .plot clk
-.plot reset
-.plot Xbeta.pcsel[2:0]
+.plot reset Xbeta.annul
+//.plot Xbeta.pcsel[2:0]
 .plot ia[31:0]
 .plot empty
-.plot Xbeta.annul
+//.plot Xbeta.annul
 .plot id[31:0]
 .plot Xbeta.exe_ir[31:0]
 .plot betaop(Xbeta.exe_ir[31:26])
 .plot empty
+
+.plot Xbeta.alufn[5:0]
+.plot Xbeta.ra2sel
+.plot Xbeta.radata[31:0]
+.plot Xbeta.rbdata[31:0]
+.plot Xbeta.alu[31:0]
+.plot Xbeta.wdata[31:0]
+.plot Xbeta.wdsel[1:0]
+
 
 //.plot ma[31:0]
 //.plot mrd[31:0]
