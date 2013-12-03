@@ -9,35 +9,6 @@ Xbeta clk reset 0 ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0] beta
 // can have a different number of ports. It should however be initialized with
 // the contents shown below -- the benchmark suite. A file containing these
 // values can be found at /mit/6.004/jsim/projcheckoff.bin.
-/*
-Xmoe clk moe vdd _moe mux2
-Xwr  clk  wr   0  _wr mux2
-Xma  clk#10 ma[11:2] ia[11:2] _ma[11:2] mux2
-Xmrd md[31:0] mrd[31:0] cnxn
-Xmwd wr#32 mwd[31:0] md[31:0] tristate
-
-.connect _ma[31] ma[31]
-.connect 0 _ma[30:12] _ma[1:0]
-
-Xregid md[31:0] iclk#32 mdreg[31:0] dreg
-Xid    clk#32 mdreg[31:0] md[31:0] id[31:0] mux2
-
-Xmem
-+ _moe clk _wr _ma[11:2] md[31:0]
-+ $memory width=32 nlocations=1024
-+ contents=(0x77FFFFFF)
-//+ file="projcheckoff.bin"
-
-//*/
-/*
-Xmem
-+ vdd 0 0 ia[11:2] id[31:0]
-+ moe 0 0 ma[11:2] mrd[31:0]
-+ 0 clk wr ma[11:2] mwd[31:0]
-+ $memory width=32 nlocations=1024
-+ file="projcheckoff.bin"
-//*/
-//*
 Xmwd wr#32 mwd[31:0] md[31:0] tristate
 Xmrd md[31:0] mrd[31:0] cnxn
 Xmem
@@ -45,7 +16,7 @@ Xmem
 + moe clk wr ma[11:2] md[31:0]
 + $memory width=32 nlocations=1024
 + file="projcheckoff.bin"
-//*/
+
 
 // Run the simulation for 1205 cycles. Your design might require more or less
 // cycles depending on how it executes instructions. Run only as long as necessary
