@@ -34,12 +34,24 @@ Xv2 vx1 vx2 v nand2
 
 
 * x32 CARRY_SELECT ADDER *
+.subckt cs_adder8 a[7:0] b[7:0] ci s[7:0] co
+Xfa a[7:0] b[7:0] c[6:0] ci s[7:0] co c[6:0] fulladder
+.ends
+
+.subckt cs_adder16 a[15:0] b[15:0] ci s[15:0] co
+Xfa_low a[7:0]  b[7:0]  ci  s[7:0]      col  cs_adder8
+Xfa_hi0 a[15:8] b[15:8] 0   s_hi0[15:8] co0 cs_adder8
+Xfa_hi1 a[15:8] b[15:8] vdd s_hi1[15:8] co1 cs_adder8
+Xmx_hi  col#9 s_hi0[15:8] co0 s_hi1[15:8] co1 s[15:8] co mux2
+.ends
+
 .subckt cs_adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
 Xxb B[31:0] ALUFN[0]#32 XB[31:0] xor2
-Xfa_low A[15:0] XB[15:0] C[14:0] ALUFN[0] s[15:0] C[15:0] fulladder
-Xfa_hi0 A[31:16] XB[31:16] hi0_C[30:16] 0   hi0_s[31:16] hi0_C[31:16] fulladder
-Xfa_hi1 A[31:16] XB[31:16] hi1_C[30:16] vdd hi1_s[31:16] hi1_C[31:16] fulladder
-Xfa_him C[15]#16 hi0_s[31:16] hi1_s[31:16] s[31:16] mux2
+
+Xfa_low A[15:0]  XB[15:0]  ALUFN[0] s[15:0]      col cs_adder16
+Xfa_hi0 A[31:16] XB[31:16] 0        s_hi0[31:16] co0 cs_adder16
+Xfa_hi1 A[31:16] XB[31:16] vdd      s_hi1[31:16] co1 cs_adder16
+Xfa_him col#17 s_hi0[31:16] co0 s_hi1[31:16] co1 s[31:16] co mux2
 
 Xznor s[31:0] znor[7:0] nor4
 Xznan znor[7:0] znan[1:0] nand4
