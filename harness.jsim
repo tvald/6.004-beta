@@ -22,7 +22,7 @@ Xmem
 // cycles depending on how it executes instructions. Run only as long as necessary
 // to complete the benchmark since the ending simulation time is used to compute
 // your circuit?s Benmark
-Vreset reset 0 pwl(0ns 3.3v, 30ns 3.3v, 30.1ns 0v)
+Vreset reset 0 pwl(0ns 3.3v, 22ns 3.3v, 22.1ns 0v)
 
 // BENMARK:
 // 1e-10/([area]e-12*[ns]e-9)
