@@ -165,22 +165,31 @@ Xctl vdd 0 0 id[31:26] // one read port
 Xirq ia[31] irq 0 _irq mux2
 
 * PC
-Xpc clk reset pcsel[2:0] radata[31:2] pcb[30:2] ia[31:0] pc4_[31:0]  pc
+Xpc clk reset pcsel[2:0] radata[31:2] pcb[30:2] ia[31:0] if_pc4_[31:0]  pc
+
+* PIPELINE STAGE 1-2 BORDER
+.connect 0 exe_pc4_[1:0]
+Xexe_regpc if_pc4_[31:2] clk#30 exe_pc4_[31:2] dreg
+Xannul annul#32  id[31:0]  vdd 0#5 vdd#26  if_ir[31:0] mux2
+Xexe_regid if_ir[31:0] clk#32 exe_ir[31:0] dreg
+// annul when next instruction anything except pc+4 (pcsel == 0b000)
+Xsetannul reset pcsel[2:0] no_annul nor4
+Xinvannul no_annul annul inverter
 
 * CTL logic
-Xctl reset _irq z id[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr   ctl
+Xctl reset _irq z exe_ir[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr   ctl
 
 * pc branch offset
-Xpcb  pc4_[30:2]  id[14]#13 id[15:0]  c[29:2] 0  pcb[30:2]  c[30:2] fulladder
+Xpcb  exe_pc4_[30:2]  exe_ir[14]#13 exe_ir[15:0]  c[29:2] 0  pcb[30:2]  c[30:2] fulladder
 .connect pcb[31] ia[31]
 .connect pcb[1:0] 0
 
 * registers
 Xregfile clk werf wasel ra2sel ra[4:0] rb[4:0] rc[4:0]
 +        wdata[31:0] radata[31:0] rbdata[31:0]   regfile
-Xra id[20:16] ra[4:0] cxn
-Xrb id[15:11] rb[4:0] cxn
-Xrc id[25:21] rc[4:0] cxn
+Xra exe_ir[20:16] ra[4:0] cxn
+Xrb exe_ir[15:11] rb[4:0] cxn
+Xrc exe_ir[25:21] rc[4:0] cxn
 
 * calculate Z
 Xznor radata[31:0] znor[7:0] nor4
@@ -189,13 +198,13 @@ Xzout znan[1:0] z nor2
 
 * ALU input
 Xasel asel#32 radata[31:0] 0 pcb[30:2] 0#2    a[31:0] mux2
-Xbsel bsel#32 rbdata[31:0] id[15]#16 id[15:0] b[31:0] mux2
+Xbsel bsel#32 rbdata[31:0] exe_ir[15]#16 exe_ir[15:0] b[31:0] mux2
 
 * ALU
 Xalu alufn[5:0] a[31:0] b[31:0] alu[31:0]             alu
 
 * write data selection
-Xwdsel wdsel[0]#32 wdsel[1]#32 pc4_[31:0] alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
+Xwdsel wdsel[0]#32 wdsel[1]#32 exe_pc4_[31:0] alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
 
 Xma  alu[31:0] ma[31:0] cxn
 Xmwd rbdata[31:0] mwd[31:0] cxn

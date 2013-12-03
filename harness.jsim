@@ -27,13 +27,13 @@ Vreset reset 0 pwl(0ns 3.3v, 30ns 3.3v, 30.1ns 0v)
 // BENMARK:
 // 1e-10/([area]e-12*[ns]e-9)
 
-//Vclk clk 0 pulse(3.3,0,8.7ns,.01ns,.01ns,8.7ns)
-//Viclk iclk 0 pulse(0,3.3,7.7ns,.01ns,.01ns,8.7ns)
-//.tran 18485ns
+// BMK = 28.24 @ 280753 mc2
+Vclk clk 0 pulse(3.3,0,5.65ns,.01ns,.01ns,5.65ns)
+.tran 12612ns
 
 // BMK = 24.97 @ 276387 mc2
-Vclk clk 0 pulse(3.3,0,4ns,.01ns,.01ns,7.67ns)
-.tran 14489ns
+//Vclk clk 0 pulse(3.3,0,4ns,.01ns,.01ns,7.67ns)
+//.tran 14489ns
 
 // BMK = 22.36 @ 308659 mc2
 //Vclk clk 0 pulse(3.3,0,4ns,.01ns,.01ns,7.67ns)
@@ -42,24 +42,22 @@ Vclk clk 0 pulse(3.3,0,4ns,.01ns,.01ns,7.67ns)
 
 
 .plot clk
-.plot iclk
-//.plot Xbeta.pcsel[2:0]
+.plot reset
+.plot Xbeta.pcsel[2:0]
 .plot ia[31:0]
-.plot _ma[11:0]
 .plot empty
-.plot mdreg[31:0]
-.plot md[31:0]
+.plot Xbeta.annul
 .plot id[31:0]
-.plot betaop(id[31:26])
+.plot Xbeta.exe_ir[31:0]
+.plot betaop(Xbeta.exe_ir[31:26])
 .plot empty
+
 //.plot ma[31:0]
 //.plot mrd[31:0]
 //.plot empty
-.plot moe
-.plot _moe
-.plot wr
-.plot _wr
 
+//.plot moe
+//.plot wr
 //.plot mwd[31:0]
 //.plot reg(id[20:16])
 //.plot reg(id[15:11])
