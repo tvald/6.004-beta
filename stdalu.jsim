@@ -121,7 +121,9 @@ Xsl
 .ends
 
 
-.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0]
+.subckt alu ALUFN[5:0] _A[31:0] _B[31:0] alu[31:0]
+
+Xbuf _A[31:0] _B[31:0] A[31:0] B[31:0] buffer_2
 
 //Xadd ALUFN[0] A[31:0] B[31:0] s[31:0] z v n adder32
 Xadd ALUFN[0] A[31:0] B[31:0] s[31:0] z v n cs_adder32
