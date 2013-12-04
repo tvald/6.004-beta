@@ -79,12 +79,8 @@ Xirq irq#8
 
 * PCSEL: BEQ (0b011101) / BNE (0b011110), set Z
 Xb0 z id[27] _z xor2
-Xb1 id[27:26] b1 xor2
-Xb2 id[31] b2 inverter
-Xb3 b1 b2 b3 nand2
-Xb4 id[30:28] b4 nand3
-Xb5 b3 b4 b_flag nor2
-Xb6 b_flag#3 __pcsel[2:0] 0 0 _z _pcsel[2:0] mux2
+Xbt id[31:26] br_flag brtest
+Xb6 br_flag#3 __pcsel[2:0] 0 0 _z _pcsel[2:0] mux2
 
 * RA2SEL: ST (0b011001) = 1 / OP (0b10XXXX) = 0 / OTHER = X (default to 1 for ease)
 Xra0 id[30] ra0 inverter
@@ -167,6 +163,15 @@ Xctl vdd 0 0 id[31:26] // one read port
 
 .ends
 
+.subckt brtest id[31:26] br_flag
+Xb1 id[27:26] b1 xor2
+Xb2 id[31] b2 inverter
+Xb3 b1 b2 b3 nand2
+Xb4 id[30:28] b4 nand3
+Xb5 b3 b4 br_flag nor2
+.ends
+
+
 
 .subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
 
@@ -174,16 +179,30 @@ Xctl vdd 0 0 id[31:26] // one read port
 Xirq ia[31] irq 0 _irq mux2
 
 * PC
-Xpc clk reset pcsel[2:0] radata[31:2] pcb[30:2] ia[31:0] if_pc4_[31:0]  pc
+Xpc clk reset br_pcsel[2:0] radata[31:2] pcb[30:2] ia[31:0] if_pc4_[31:0]  pc
 
 * PIPELINE STAGE 1-2 BORDER
 .connect 0 exe_pc4_[1:0]
+
+// PC+4 Register
 Xexe_regpc if_pc4_[31:2] clk#30 exe_pc4_[31:2] dreg
+
+// Instruction Register, with Annul logic defaulting to ADD(R31,R31,R31)=0x87FFFF
 Xannul annul#32  id[31:0]  vdd 0#5 vdd#26  if_ir[31:0] mux2
 Xexe_regid if_ir[31:0] clk#32 exe_ir[31:0] dreg
-// annul when next instruction anything except pc+4 (pcsel == 0b000)
-Xsetannul reset pcsel[2:0] no_annul nor4
-Xinvannul no_annul annul inverter
+
+// Branch Prediction Register + logic
+.connect if_br 0
+Xexe_brpred if_br clk exe_br dreg
+Xbrpred_chk id[31:26] _brtest brtest
+Xbrpred_ann _brtest not_rxij not_br_hit br_flag and3 // _brtest && !annul
+Xbrpred_sel br_flag#3 pcsel[2:0]  0 0 if_br  br_pcsel[2:0] mux2
+
+// annul when PCSEL == XAdr (0b100), IllOp (0b011), or JT (0b010)
+// annul if incorrectly predicted BR (0b001) or PC+4 (0b000)
+Xsetannul_rxij reset pcsel[2] pcsel[1] not_rxij   nor3
+Xsetannul_br   exe_br pcsel[0]         not_br_hit xnor2
+Xsetannul      not_rxij not_br_hit annul nand2
 
 * CTL logic
 Xctl reset _irq z exe_ir[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr   ctl
