@@ -171,8 +171,7 @@ Xpc4 ia[30:2] ci[29:2] vdd pc[30:2] ci[30:2] incrementer
 
 // pc branch / relative offset
 Xidbuf id[15:0] _id[15:0] buffer_8
-Xpcr 0#3 pc[30:2] 0#3 _id[15]#13 _id[15:0] 0 _[2:0] pcr[30:2] _[3] cs_adder32 //TODO: simplify me
-//Xpcr  pc[30:2]  _id[15]#13 _id[15:0]  c[29:2] 0  pcr[30:2]  c[30:2] fulladder
+Xpcr pc[30:2] _id[15]#13 _id[15:0] 0 pcr[30:2] _ cs_adder29
 .connect pcr[31] ia[31]
 .connect pcr[1:0] 0
 

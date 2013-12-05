@@ -41,8 +41,19 @@ Xv2 vx1 vx2 v nand2
 
 
 * x32 CARRY_SELECT ADDER *
+.subckt cs_adder5 a[4:0] b[4:0] ci s[4:0] co
+Xfa a[4:0] b[4:0] c[3:0] ci s[4:0] co c[3:0] fulladder
+.ends
+
 .subckt cs_adder8 a[7:0] b[7:0] ci s[7:0] co
 Xfa a[7:0] b[7:0] c[6:0] ci s[7:0] co c[6:0] fulladder
+.ends
+
+.subckt cs_adder13 a[12:0] b[12:0] ci s[12:0] co
+Xfa_low a[7:0]  b[7:0]  ci  s[7:0]      col  cs_adder8
+Xfa_hi0 a[12:8] b[12:8] 0   s_hi0[12:8] co0 cs_adder5
+Xfa_hi1 a[12:8] b[12:8] vdd s_hi1[12:8] co1 cs_adder5
+Xmx_hi  col#6 s_hi0[12:8] co0 s_hi1[12:8] co1 s[12:8] co mux2
 .ends
 
 .subckt cs_adder16 a[15:0] b[15:0] ci s[15:0] co
@@ -50,6 +61,13 @@ Xfa_low a[7:0]  b[7:0]  ci  s[7:0]      col  cs_adder8
 Xfa_hi0 a[15:8] b[15:8] 0   s_hi0[15:8] co0 cs_adder8
 Xfa_hi1 a[15:8] b[15:8] vdd s_hi1[15:8] co1 cs_adder8
 Xmx_hi  col#9 s_hi0[15:8] co0 s_hi1[15:8] co1 s[15:8] co mux2
+.ends
+
+.subckt cs_adder29 a[28:0] b[28:0] ci s[28:0] co
+Xfa_low a[15:0]  b[15:0]  ci  s[15:0]      col  cs_adder16
+Xfa_hi0 a[28:16] b[28:16] 0   s_hi0[28:16] co0 cs_adder13
+Xfa_hi1 a[28:16] b[28:16] vdd s_hi1[28:16] co1 cs_adder13
+Xmx_hi  col#14 s_hi0[28:16] co0 s_hi1[28:16] co1 s[28:16] co mux2
 .ends
 
 .subckt cs_adder32 a[31:0] b[31:0] ci s[31:0] co
