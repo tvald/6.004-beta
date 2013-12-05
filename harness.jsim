@@ -27,9 +27,13 @@ Vreset reset 0 pwl(0ns 3.3v, 15ns 3.3v, 15.1ns 0v)
 // BENMARK:
 // 1e-10/([area]e-12*[ns]e-9)
 
-// BMK = 37.12 @ 285131 mc2
-Vclk clk 0 pulse(3.3,0,4.33ns,.01ns,.01ns,4.33ns)
-.tran 11448ns
+// BMK = 39.47 @ 299054 mc2
+Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
+.tran 8472ns
+
+// BMK = 39.47 @ 299054 mc2
+//Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
+//.tran 8472ns
 
 // BMK = 36.69 @ 288499 mc2
 //Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
@@ -55,22 +59,27 @@ Vclk clk 0 pulse(3.3,0,4.33ns,.01ns,.01ns,4.33ns)
 
 .plot clk
 //.plot reset
-.plot Xbeta.Xbeta1.annul
-.plot Xbeta.Xbeta1.br_annul
-.plot Xbeta.Xbeta1.pc_annul
+//.plot Xbeta.Xbeta1.annul
+//.plot Xbeta.Xbeta1.br_annul
+//.plot Xbeta.Xbeta1.pc_annul
+.plot Xbeta.Xbeta1.br_annul Xbeta.Xbeta1.pc_annul
+.plot _
+//.plot ia[31:0]
+.plot betaop(Xbeta.exe_ir[31:26])
+//.plot Xbeta.pcsel[1:0]
 .plot _
 .plot ia[31:0]
-.plot betaop(Xbeta.exe_ir[31:26])
-.plot Xbeta.pcsel[1:0]
-.plot _
 .plot Xbeta.Xbeta1.pc[31:0]
+.plot Xbeta.Xbeta1.id[31:0]
 .plot Xbeta.Xbeta1.pcr[31:0]
+.plot Xbeta.Xbeta1.Xbr.pred_pc[31:0]
 .plot Xbeta.Xbeta1.br_pc[31:0]
 .plot Xbeta.Xbeta1.Xbr.br_flag
-//.plot Xbeta.Xbeta1.Xbr.br_pred
-.plot Xbeta.Xbeta1.Xbr.last_pred
-.plot Xbeta.Xbeta1.Xbr.br_miss
-.plot Xbeta.Xbeta1.Xbr.z
+.plot Xbeta.Xbeta1.Xbr.br_pred
+.plot Xbeta.Xbeta1.Xbr.br_annul
+//.plot Xbeta.Xbeta1.Xbr.last_pred
+//.plot Xbeta.Xbeta1.Xbr.br_miss
+//.plot Xbeta.Xbeta1.Xbr.z
 //.plot id[31:0]
 //.plot _
 

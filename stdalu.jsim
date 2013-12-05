@@ -52,7 +52,14 @@ Xfa_hi1 a[15:8] b[15:8] vdd s_hi1[15:8] co1 cs_adder8
 Xmx_hi  col#9 s_hi0[15:8] co0 s_hi1[15:8] co1 s[15:8] co mux2
 .ends
 
-.subckt cs_adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
+.subckt cs_adder32 a[31:0] b[31:0] ci s[31:0] co
+Xfa_low a[15:0]  b[15:0]  ci  s[15:0]      col  cs_adder16
+Xfa_hi0 a[31:16] b[31:16] 0   s_hi0[31:16] co0 cs_adder16
+Xfa_hi1 a[31:16] b[31:16] vdd s_hi1[31:16] co1 cs_adder16
+Xmx_hi  col#17 s_hi0[31:16] co0 s_hi1[31:16] co1 s[31:16] co mux2
+.ends
+
+.subckt cs_alu_adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
 Xxb B[31:0] ALUFN[0]#32 XB[31:0] xor2
 
 Xfa_low A[15:0]  XB[15:0]  ALUFN[0] s[15:0]      col cs_adder16
@@ -133,7 +140,7 @@ Xsl
 Xbuf _A[31:0] _B[31:0] A[31:0] B[31:0] buffer_2
 
 //Xadd ALUFN[0] A[31:0] B[31:0] s[31:0] z v n adder32
-Xadd ALUFN[0] A[31:0] B[31:0] s[31:0] z v n cs_adder32
+Xadd ALUFN[0] A[31:0] B[31:0] s[31:0] z v n cs_alu_adder32
 Xcmp ALUFN[2:1] z v n cmp[31:0] compare32
 Xboo ALUFN[3:0] A[31:0] B[31:0] boole[31:0] boole32
 Xshf ALUFN[1:0] A[31:0] B[4:0] shift[31:0] shift32

@@ -169,12 +169,15 @@ Xpc4 ia[30:2] ci[29:2] vdd pc[30:2] ci[30:2] incrementer
 .connect pc[1:0] 0
 
 // pc branch / relative offset
-Xpcr  pc[30:2]  id[15]#13 id[15:0]  c[29:2] 0  pcr[30:2]  c[30:2] fulladder
+Xidbuf id[15:0] _id[15:0] buffer_8
+Xpcr 0#3 pc[30:2] 0#3 _id[15]#13 _id[15:0] 0 _[2:0] pcr[30:2] _[3] cs_adder32
+//Xpcr  pc[30:2]  _id[15]#13 _id[15:0]  c[29:2] 0  pcr[30:2]  c[30:2] fulladder
 .connect pcr[31] ia[31]
 .connect pcr[1:0] 0
 
 // predict whether branch taken (taken if z=1)
-Xbrpred  vdd br_flag br_pred and2	// for now, always take branch
+Xbrpred  vdd br_flag _br_pred and2	// for now, always take branch
+Xbrpredbuf _br_pred br_pred buffer_8
 
 // store values for next phase
 Xregpred br_pred clk last_pred dreg	// branch prediction
