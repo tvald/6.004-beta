@@ -3,35 +3,26 @@
 .include "stdalu.jsim"
 .include "harness.jsim"
 
-.subckt cxn a b
-.connect a b
-.ends
-
-
-.subckt pc clk reset pcsel[2:0] jt[31:2] bt[30:2] ia[31:0] pc4_[31:0]
+.subckt pc clk reset pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:0] pc_annul
 
 .connect ia[1:0] 0
-.connect pc4_[1:0] 0
-.connect pc4_[31] ia[31]
-.connect bt[31] ia[31]
-.connect bt[1:0] 0
+.connect br_pc[31] ia[31]
+.connect br_pc[1:0] 0
 .connect d[1:0] 0
 
-Xpc4 ia[30:2] c[29:2] vdd pc4_[30:2] c[30:2] incrementer
-
 Xjt31 ia[31] jt[31] _jt31 and2
-Xirl   pcsel[2]#2    0 vdd    vdd 0   irl[1:0]    mux2
-Xirlp  pcsel[2]#2 pcsel[1:0] vdd#2 _pcsel[1:0] mux2
 
-Xpcsel _pcsel[0]#30 _pcsel[1]#30
-+ ia[31] pc4_[30:2]
-+ ia[31] bt[30:2]
-+ _jt31 jt[30:2]
-+ vdd 0#27 irl[1:0]
+Xpcsel pcsel[0]#30 pcsel[1]#30
++ br_pc[31:2]     // BR / PC4  (0b00)
++ _jt31 jt[30:2]  // JT    (0b01)
++ vdd 0#27 0 vdd  // ILLOP (0b10)
++ vdd 0#27 vdd 0  // XADDR (0b11)
 + _d[31:2] mux4
 Xreset reset#30 _d[31:2] vdd 0#29 d[31:2] mux2
 
 Xregpc d[31:2] clk#30 ia[31:2] dreg
+
+Xannul reset pcsel[1] pcsel[0] pc_annul or3
 
 .ends
 
@@ -64,24 +55,18 @@ Xbdata bdata[31:0] r31b#32 rbdata[31:0] and2
 .ends
 
 
-.subckt ctl reset irq z id[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr
+.subckt ctl reset irq z id[31:26] pcsel[1:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr
 
 * reset flag
 Xwr reset xwr 0 wr mux2
 
 * irq flag
-Xirq irq#8
-+ _werf _wdsel[1:0] _wr _pcsel[2:0] _wasel
-+   vdd         0#2   0     vdd 0 0    vdd
-+  werf  wdsel[1:0] xwr  pcsel[2:0]  wasel
+Xirq irq#7
++ _werf _wdsel[1:0] _wr _pcsel[1:0] _wasel
++   vdd         0#2   0     vdd vdd    vdd
++  werf  wdsel[1:0] xwr  pcsel[1:0]  wasel
 + mux2
 
-
-* PCSEL: BEQ (0b011101) / BNE (0b011110), set Z
-//TODO: strip out BR handling
-Xb0 z id[27] _z xor2
-Xbt id[31:26] br_flag brtest
-Xb6 br_flag#3 __pcsel[2:0] 0 0 _z _pcsel[2:0] mux2
 
 * RA2SEL: ST (0b011001) = 1 / OP (0b10XXXX) = 0 / OTHER = X (default to 1 for ease)
 Xra0 id[30] ra0 inverter
@@ -94,168 +79,190 @@ Xst2 st0 st1 _wr and2
 
 * ROM
 Xctl vdd 0 0 id[31:26] // one read port
-+ __pcsel[2:0] _wasel asel bsel alufn[5:0] _wdsel[1:0] _werf moe
-+ $memory width=16 nlocations=64 contents=(
-+ 0b0111000000000010 // opcode=0b000000
-+ 0b0111000000000010 // opcode=0b000001
-+ 0b0111000000000010 // opcode=0b000010
-+ 0b0111000000000010 // opcode=0b000011
-+ 0b0111000000000010 // opcode=0b000100
-+ 0b0111000000000010 // opcode=0b000101
-+ 0b0111000000000010 // opcode=0b000110
-+ 0b0111000000000010 // opcode=0b000111
-+ 0b0111000000000010 // opcode=0b001000
-+ 0b0111000000000010 // opcode=0b001001
-+ 0b0111000000000010 // opcode=0b001010
-+ 0b0111000000000010 // opcode=0b001011
-+ 0b0111000000000010 // opcode=0b001100
-+ 0b0111000000000010 // opcode=0b001101
-+ 0b0111000000000010 // opcode=0b001110
-+ 0b0111000000000010 // opcode=0b001111
-+ 0b0111000000000010 // opcode=0b010000
-+ 0b0111000000000010 // opcode=0b010001
-+ 0b0111000000000010 // opcode=0b010010
-+ 0b0111000000000010 // opcode=0b010011
-+ 0b0111000000000010 // opcode=0b010100
-+ 0b0111000000000010 // opcode=0b010101
-+ 0b0111000000000010 // opcode=0b010110
-+ 0b0111000000000010 // opcode=0b010111
-+ 0b0000010000001011 // opcode=0b011000 LD
-+ 0b0000010000000000 // opcode=0b011001 ST
-+ 0b0111000000000010 // opcode=0b011010 
-+ 0b0100000000000010 // opcode=0b011011 JMP
-+ 0b0111000000000010 // opcode=0b011100 
-+ 0b0000000000000010 // opcode=0b011101 BEQ
-+ 0b0000000000000010 // opcode=0b011110 BNE
-+ 0b0000100110101011 // opcode=0b011111 LDR
-+ 0b0000000000000110 // opcode=0b100000 ADD
-+ 0b0000000000010110 // opcode=0b100001 SUB
-+ 0b0000000000000110 // opcode=0b100010 MUL
-+ 0b0000000000000110 // opcode=0b100011 DIV
-+ 0b0000001100110110 // opcode=0b100100 CMPEQ
-+ 0b0000001101010110 // opcode=0b100101 CMPLT
-+ 0b0000001101110110 // opcode=0b100110 CMPLE
-+ 0b0111000000000010 // opcode=0b100111 
-+ 0b0000000110000110 // opcode=0b101000 AND
-+ 0b0000000111100110 // opcode=0b101001 OR
-+ 0b0000000101100110 // opcode=0b101010 XOR
-+ 0b0111000000000010 // opcode=0b101011 
-+ 0b0000001000000110 // opcode=0b101100 SHL
-+ 0b0000001000010110 // opcode=0b101101 SHR
-+ 0b0000001000110110 // opcode=0b101110 SRA
-+ 0b0111000000000010 // opcode=0b101111 
-+ 0b0000010000000110 // opcode=0b110000 ADDC
-+ 0b0000010000010110 // opcode=0b110001 SUBC
-+ 0b0000010000000110 // opcode=0b110010 MULC
-+ 0b0000010000000110 // opcode=0b110011 DIVC
-+ 0b0000011100110110 // opcode=0b110100 CMPEQC
-+ 0b0000011101010110 // opcode=0b110101 CMPLTC
-+ 0b0000011101110110 // opcode=0b110110 CMPLEC
-+ 0b0111000000000010 // opcode=0b110111 
-+ 0b0000010110000110 // opcode=0b111000 ANDC
-+ 0b0000010111100110 // opcode=0b111001 ORC
-+ 0b0000010101100110 // opcode=0b111010 XORC
-+ 0b0111000000000010 // opcode=0b111011 
-+ 0b0000011000000110 // opcode=0b111100 SHLC
-+ 0b0000011000010110 // opcode=0b111101 SHRC
-+ 0b0000011000110110 // opcode=0b111110 SRAC
-+ 0b0111000000000010 // opcode=0b111111 
++ _pcsel[1:0] _wasel asel bsel alufn[5:0] _wdsel[1:0] _werf moe
++ $memory width=15 nlocations=64 contents=(
++ 0b101000000000010 // opcode=0b000000
++ 0b101000000000010 // opcode=0b000001
++ 0b101000000000010 // opcode=0b000010
++ 0b101000000000010 // opcode=0b000011
++ 0b101000000000010 // opcode=0b000100
++ 0b101000000000010 // opcode=0b000101
++ 0b101000000000010 // opcode=0b000110
++ 0b101000000000010 // opcode=0b000111
++ 0b101000000000010 // opcode=0b001000
++ 0b101000000000010 // opcode=0b001001
++ 0b101000000000010 // opcode=0b001010
++ 0b101000000000010 // opcode=0b001011
++ 0b101000000000010 // opcode=0b001100
++ 0b101000000000010 // opcode=0b001101
++ 0b101000000000010 // opcode=0b001110
++ 0b101000000000010 // opcode=0b001111
++ 0b101000000000010 // opcode=0b010000
++ 0b101000000000010 // opcode=0b010001
++ 0b101000000000010 // opcode=0b010010
++ 0b101000000000010 // opcode=0b010011
++ 0b101000000000010 // opcode=0b010100
++ 0b101000000000010 // opcode=0b010101
++ 0b101000000000010 // opcode=0b010110
++ 0b101000000000010 // opcode=0b010111
++ 0b000010000001011 // opcode=0b011000 LD
++ 0b000010000000000 // opcode=0b011001 ST
++ 0b101000000000010 // opcode=0b011010 
++ 0b010000000000010 // opcode=0b011011 JMP
++ 0b101000000000010 // opcode=0b011100 
++ 0b000000000000010 // opcode=0b011101 BEQ
++ 0b000000000000010 // opcode=0b011110 BNE
++ 0b000100110101011 // opcode=0b011111 LDR
++ 0b000000000000110 // opcode=0b100000 ADD
++ 0b000000000010110 // opcode=0b100001 SUB
++ 0b000000000000110 // opcode=0b100010 MUL
++ 0b000000000000110 // opcode=0b100011 DIV
++ 0b000001100110110 // opcode=0b100100 CMPEQ
++ 0b000001101010110 // opcode=0b100101 CMPLT
++ 0b000001101110110 // opcode=0b100110 CMPLE
++ 0b101000000000010 // opcode=0b100111 
++ 0b000000110000110 // opcode=0b101000 AND
++ 0b000000111100110 // opcode=0b101001 OR
++ 0b000000101100110 // opcode=0b101010 XOR
++ 0b101000000000010 // opcode=0b101011 
++ 0b000001000000110 // opcode=0b101100 SHL
++ 0b000001000010110 // opcode=0b101101 SHR
++ 0b000001000110110 // opcode=0b101110 SRA
++ 0b101000000000010 // opcode=0b101111 
++ 0b000010000000110 // opcode=0b110000 ADDC
++ 0b000010000010110 // opcode=0b110001 SUBC
++ 0b000010000000110 // opcode=0b110010 MULC
++ 0b000010000000110 // opcode=0b110011 DIVC
++ 0b000011100110110 // opcode=0b110100 CMPEQC
++ 0b000011101010110 // opcode=0b110101 CMPLTC
++ 0b000011101110110 // opcode=0b110110 CMPLEC
++ 0b101000000000010 // opcode=0b110111 
++ 0b000010110000110 // opcode=0b111000 ANDC
++ 0b000010111100110 // opcode=0b111001 ORC
++ 0b000010101100110 // opcode=0b111010 XORC
++ 0b101000000000010 // opcode=0b111011 
++ 0b000011000000110 // opcode=0b111100 SHLC
++ 0b000011000010110 // opcode=0b111101 SHRC
++ 0b000011000110110 // opcode=0b111110 SRAC
++ 0b101000000000010 // opcode=0b111111 
 + )
 
 .ends
 
 .subckt brtest id[31:26] br_flag
+.ends
+
+
+// BRANCH PREDICTION
+.subckt branch_ctl clk reset ia[31:0] id[31:0] z br_pc[31:0] pc[31:0] pcr[31:0] br_annul
+
+// branch instruction flag
 Xb1 id[27:26] b1 xor2
 Xb2 id[31] b2 inverter
 Xb3 b1 b2 b3 nand2
 Xb4 id[30:28] b4 nand3
-Xb5 b3 b4 br_flag nor2
+Xb5 b3 b4 br_annul reset br_flag nor4
+
+// increment pc + 4
+Xpc4 ia[30:2] ci[29:2] vdd pc[30:2] ci[30:2] incrementer
+.connect pc[31] ia[31]
+.connect pc[1:0] 0
+
+// pc branch / relative offset
+Xpcr  pc[30:2]  id[15]#13 id[15:0]  c[29:2] 0  pcr[30:2]  c[30:2] fulladder
+.connect pcr[31] ia[31]
+.connect pcr[1:0] 0
+
+// predict whether branch taken (taken if z=1)
+Xbrpred  vdd br_flag br_pred and2	// for now, always take branch
+
+// store values for next phase
+Xregpred br_pred clk last_pred dreg	// branch prediction
+Xregflag br_flag clk last_flag dreg	// was branch instruction
+Xregpc   pc[31:0]  clk#32 last_pc[31:0]  dreg	// last pc increment
+Xregpcr  pcr[31:0] clk#32 last_pcr[31:0] dreg	// last pc branch / relative
+
+// annul if messed up last prediction
+Xbrmiss last_pred z br_miss xor2
+Xannul last_flag br_miss br_annul and2
+
+// set next pc instruction address
+Xpc_pred br_pred#32 pc[31:0] pcr[31:0] pred_pc[31:0] mux2
+Xpc_miss z#32 last_pc[31:0] last_pcr[31:0] miss_pc[31:0] mux2
+Xpc_br   br_annul#32 pred_pc[31:0] miss_pc[31:0] br_pc[31:0] mux2
+
 .ends
 
 
-
+// BETA: COMPLETE CIRCUIT
 .subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
 
-* force supervisor bit override irq
+// IF: INSTRUCTION FETCH
+Xbeta1 clk reset irq z pcsel[1:0] jt[31:0] ia[31:0] id[31:0] if_pc[31:0] if_pcr[31:0] if_ir[31:0] beta_1
+
+// IF-EXE BORDER
+.connect 0 exe_pc[1:0]
+Xregpc  if_pc[31:2]  clk#30 exe_pc[31:2]  dreg
+Xregpcr if_pcr[31:0] clk#32 exe_pcr[31:0] dreg
+Xregir  if_ir[31:0]  clk#32 exe_ir[31:0]  dreg
+
+// EXE: INSTRUCTION EXECUTION
+Xbeta2 clk reset irq exe_pc[31:0] exe_pcr[31:0] exe_ir[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0] z pcsel[1:0] jt[31:0] beta_2
+
+.ends
+
+
+// BETA STAGE 1: INSTRUCTION FETCH
+.subckt beta_1 clk reset irq z pcsel[1:0] jt[31:0] ia[31:0] id[31:0] pc[31:0] pcr[31:0] ir[31:0]
+
+* supervisor bit overrides irq
 Xirq ia[31] irq 0 _irq mux2
 
-* PC
-Xpc clk reset ann_pcsel[2:0] radata[31:2] br_pcb[30:2] ia[31:0] if_pc4_[31:0]  pc
+* PC Control
+Xpc clk reset pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:0] pc_annul pc
 
-* PIPELINE STAGE 1-2 BORDER
-.connect 0 exe_pc4_[1:0]
+* Branch Control
+Xbr clk reset ia[31:0] id[31:0] z br_pc[31:0] pc[31:0] pcr[31:0] br_annul branch_ctl
 
-// PC+4 Register
-Xexe_regpc if_pc4_[31:2] clk#30 exe_pc4_[31:2] dreg
+* annul logic, defaulting IR[31:0] to ADD(R31,R31,R31)=0x87FFFF
+Xannulchk pc_annul br_annul annul or2
+Xannul annul#32 id[31:0] vdd 0#5 vdd#26  ir[31:0] mux2
 
-// Instruction Register, with Annul logic defaulting to ADD(R31,R31,R31)=0x87FFFF
-Xannul_id annul#32  id[31:0]  vdd 0#5 vdd#26  if_ir[31:0] mux2
-Xexe_regid if_ir[31:0] clk#32 exe_ir[31:0] dreg
-
-// annul when PCSEL == XAdr (0b100), IllOp (0b011), or JT (0b010)
-// annul if incorrectly predicted BR (0b001) or PC+4 (0b000)
-Xsetannul_rxij reset pcsel[2] pcsel[1] not_rxij   nor3
-Xsetannul_br   exe_br pcsel[0]         not_br_miss xnor2
-Xsetannul      not_rxij not_br_miss annul nand2
-
-Xsetrxij       not_rxij is_rxij inverter
-Xsetfailbr     is_rxij not_br_miss br_miss nor2  // br_miss = !rxij && br_miss = !(rxij || !br_miss)
-
-// Branch Prediction Register + logic
-Xbrpred_chk id[31:26] _brtest brtest
-Xbrpred_ann _brtest not_rxij not_br_miss br_flag and3 // _brtest && !annul
-Xbrpred vdd br_flag if_br and2		// for now, always take branch
-Xexe_brpred if_br clk exe_br dreg	// store choice in register
-//Xbrpred_reg brpred_wr[1:0] clk#2 brpred_rd[1:0] dreg
-
-// set PCSEL for branch prediction and annul
-//TODO: strip out BR handling from ctl table, move here
-Xbrpred_sel br_flag#3 pcsel[2:0]  0 0 if_br  br_pcsel[2:0] mux2
-Xpcsel_ann br_miss#3 br_pcsel[2:0] 0 0 vdd  ann_pcsel[2:0] mux2 // always take branch (to correct) if br_miss
+.ends
 
 
-* CTL logic
-Xctl reset _irq z exe_ir[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr   ctl
+// BETA STAGE 2: INSTRUCTION EXECUTION
+.subckt beta_2 clk reset irq pc[31:0] pcr[31:0] ir[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0] z pcsel[1:0] jt[31:0]
 
-* pc branch offset
-Xpcb  exe_pc4_[30:2]  exe_ir[14]#13 exe_ir[15:0]  c[29:2] 0  pcb[30:2]  c[30:2] fulladder
-.connect pcb[31] ia[31]
-.connect pcb[1:0] 0
-
-* pc branch offset (prediction and annul correction)
-// calculate if-stage pcb
-Xbrpcb      if_pc4_[30:2]  exe_ir[14]#13 exe_ir[15:0]  brc[29:2] 0  if_pcb[30:2]  brc[30:2] fulladder
-.connect if_pcb[31] ia[31]
-.connect if_pcb[1:0] 0
-// select annul - invert choice made at IF stage (recorded in exe_br)
-Xbrpcbann exe_br#29 pcb[30:2] exe_pc4_[30:2] an_pcb[30:2] mux2
-// select final pc branch address (if_br will be reset by an annul)
-Xbrpcbsel if_br#29 an_pcb[30:2] if_pcb[30:2] br_pcb[30:2] mux2
-
+* control logic
+Xctl reset irq z ir[31:26] pcsel[1:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr   ctl
 
 * registers
-Xregfile clk werf wasel ra2sel ra[4:0] rb[4:0] rc[4:0]
-+        wdata[31:0] radata[31:0] rbdata[31:0]   regfile
-Xra exe_ir[20:16] ra[4:0] cxn
-Xrb exe_ir[15:11] rb[4:0] cxn
-Xrc exe_ir[25:21] rc[4:0] cxn
+Xra ir[20:16] ra[4:0] cnxn
+Xrb ir[15:11] rb[4:0] cnxn
+Xrc ir[25:21] rc[4:0] cnxn
+Xregfile clk werf wasel ra2sel ra[4:0] rb[4:0] rc[4:0] wdata[31:0] radata[31:0] rbdata[31:0]   regfile
 
-* calculate Z
+* calculate Z (reg[A]==0)
 Xznor radata[31:0] znor[7:0] nor4
 Xznan znor[7:0] znan[1:0] nand4
-Xzout znan[1:0] z nor2
+Xzout znan[1:0] _z nor2
+Xzmod _z ir[27] z xor2
 
-* ALU input
-Xasel asel#32 radata[31:0] 0 pcb[30:2] 0#2    a[31:0] mux2
-Xbsel bsel#32 rbdata[31:0] exe_ir[15]#16 exe_ir[15:0] b[31:0] mux2
+* route JT
+Xjt radata[31:2] 0#2 jt[31:0] cnxn
+
+* ALU input selection
+Xasel asel#32 radata[31:0] 0 pcr[30:2] 0#2    a[31:0] mux2
+Xbsel bsel#32 rbdata[31:0] ir[15]#16 ir[15:0] b[31:0] mux2
 
 * ALU
 Xalu alufn[5:0] a[31:0] b[31:0] alu[31:0]             alu
 
 * write data selection
-Xwdsel wdsel[0]#32 wdsel[1]#32 exe_pc4_[31:0] alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
+Xwdsel wdsel[0]#32 wdsel[1]#32 pc[31:0] alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
 
-Xma  alu[31:0] ma[31:0] cxn
-Xmwd rbdata[31:0] mwd[31:0] cxn
+Xma  alu[31:0] ma[31:0] cnxn
+Xmwd rbdata[31:0] mwd[31:0] cnxn
 
 .ends

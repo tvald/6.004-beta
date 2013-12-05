@@ -4,6 +4,13 @@
 .ends
 
 
+* INCREMENTER *
+.subckt incrementer a ci s co
+Xs  a ci s  xor2
+Xco a ci co and2
+.ends
+
+
 * FULL ADDER *
 .subckt fulladder a b ci s co
 Xxor1 a b  1 xor2
