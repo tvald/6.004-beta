@@ -63,39 +63,44 @@ Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
 
 .plot clk
 //.plot reset
-//.plot Xbeta.Xbeta1.annul
+.plot Xbeta.Xbeta1.annul
 //.plot Xbeta.Xbeta1.br_annul
 //.plot Xbeta.Xbeta1.pc_annul
-.plot Xbeta.Xbeta1.br_annul Xbeta.Xbeta1.pc_annul
-.plot _
-//.plot ia[31:0]
+//.plot Xbeta.Xbeta1.br_annul Xbeta.Xbeta1.pc_annul
+//.plot _
+.plot ia[31:0]
 .plot betaop(Xbeta.exe_ir[31:26])
 //.plot Xbeta.pcsel[1:0]
 .plot _
-.plot ia[31:0]
-.plot Xbeta.Xbeta1.pc[31:0]
-.plot Xbeta.Xbeta1.id[31:0]
-.plot Xbeta.Xbeta1.pcr[31:0]
-.plot Xbeta.Xbeta1.Xbr.pred_pc[31:0]
-.plot Xbeta.Xbeta1.br_pc[31:0]
-.plot Xbeta.Xbeta1.Xbr.br_flag
-.plot Xbeta.Xbeta1.Xbr.br_pred
-.plot Xbeta.Xbeta1.Xbr.br_annul
+//.plot ia[31:0]
+//.plot Xbeta.Xbeta1.pc[31:0]
+//.plot Xbeta.Xbeta1.id[31:0]
+//.plot Xbeta.Xbeta1.pcr[31:0]
+//.plot Xbeta.Xbeta1.Xbr.pred_pc[31:0]
+//.plot Xbeta.Xbeta1.br_pc[31:0]
+//.plot Xbeta.Xbeta1.Xbr.br_flag
+//.plot Xbeta.Xbeta1.Xbr.br_pred
+//.plot Xbeta.Xbeta1.Xbr.br_annul
+
 //.plot Xbeta.Xbeta1.Xbr.last_pred
 //.plot Xbeta.Xbeta1.Xbr.br_miss
 //.plot Xbeta.Xbeta1.Xbr.z
 //.plot id[31:0]
 //.plot _
 
-//.plot Xbeta.alufn[5:0]
-//.plot Xbeta.ra2sel
-//.plot Xbeta.radata[31:0]
-//.plot Xbeta.rbdata[31:0]
-//.plot Xbeta.alu[31:0]
-//.plot Xbeta.wdata[31:0]
-//.plot Xbeta.wdsel[1:0]
-//.plot ma[31:0]
-//.plot mrd[31:0]
+.plot Xbeta.Xbeta2.ir[31:0]
+.plot Xbeta.Xbeta2.Xregfile.ra2mux[4:0]
+.plot Xbeta.Xbeta2.Xregfile.bdata[31:0]
+.plot Xbeta.Xbeta2.radata[31:0]
+.plot Xbeta.Xbeta2.ra2sel
+.plot Xbeta.Xbeta2.rbdata[31:0]
+.plot Xbeta.Xbeta2.b[31:0]
+.plot Xbeta.Xbeta2.alufn[5:0]
+//.plot Xbeta.Xbeta2.alu[31:0]
+.plot ma[31:0]
+.plot mrd[31:0]
+.plot Xbeta.Xbeta2.wdata[31:0]
+.plot Xbeta.Xbeta2.wdsel[1:0]
 //.plot _
 //.plot moe
 //.plot wr
