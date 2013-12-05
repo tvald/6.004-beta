@@ -22,7 +22,7 @@ Xmem
 // cycles depending on how it executes instructions. Run only as long as necessary
 // to complete the benchmark since the ending simulation time is used to compute
 // your circuit?s Benmark
-Vreset reset 0 pwl(0ns 3.3v, 22ns 3.3v, 22.1ns 0v)
+Vreset reset 0 pwl(0ns 3.3v, 18ns 3.3v, 18.1ns 0v)
 
 // BENMARK:
 // 1e-10/([area]e-12*[ns]e-9)
@@ -54,27 +54,38 @@ Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
 
 
 .plot clk
-.plot reset
+//.plot reset
 .plot Xbeta.annul
-//.plot Xbeta.no_annul_rxij
-//.plot Xbeta.no_annul_br
+.plot Xbeta.not_rxij Xbeta.not_br_miss
+//.plot Xbeta.not_rxij
+//.plot Xbeta.not_br_hit
+//.plot Xbeta.if_br
+//.plot Xbeta.br_flag
 //.plot reset Xbeta.annul
 //.plot Xbeta.pcsel[2:0]
+.plot 
+.plot Xbeta.pcsel[2:0]
+.plot Xbeta.if_br Xbeta.br_flag
+.plot Xbeta.br_miss
+.plot Xbeta.Xpc.pcsel[2:0]
+.plot 
 .plot ia[31:0]
-.plot empty
-.plot Xbeta.annul
-.plot id[31:0]
-.plot Xbeta.exe_ir[31:0]
+.plot Xbeta.xpc.pc4_[31:0]
+.plot Xbeta.xpc.bt[31:0]
+//.plot id[31:0]
+.plot
+//.plot Xbeta.exe_ir[31:0]
+.plot Xbeta.exe_pc4_[31:0]
 .plot betaop(Xbeta.exe_ir[31:26])
-.plot empty
+//.plot 
 
-.plot Xbeta.alufn[5:0]
+//.plot Xbeta.alufn[5:0]
 //.plot Xbeta.ra2sel
-.plot Xbeta.radata[31:0]
-.plot Xbeta.rbdata[31:0]
-.plot Xbeta.alu[31:0]
-.plot Xbeta.wdata[31:0]
-.plot Xbeta.wdsel[1:0]
+//.plot Xbeta.radata[31:0]
+//.plot Xbeta.rbdata[31:0]
+//.plot Xbeta.alu[31:0]
+//.plot Xbeta.wdata[31:0]
+//.plot Xbeta.wdsel[1:0]
 
 
 //.plot ma[31:0]

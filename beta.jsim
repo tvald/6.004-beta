@@ -78,6 +78,7 @@ Xirq irq#8
 
 
 * PCSEL: BEQ (0b011101) / BNE (0b011110), set Z
+//TODO: strip out BR handling
 Xb0 z id[27] _z xor2
 Xbt id[31:26] br_flag brtest
 Xb6 br_flag#3 __pcsel[2:0] 0 0 _z _pcsel[2:0] mux2
@@ -179,7 +180,7 @@ Xb5 b3 b4 br_flag nor2
 Xirq ia[31] irq 0 _irq mux2
 
 * PC
-Xpc clk reset br_pcsel[2:0] radata[31:2] pcb[30:2] ia[31:0] if_pc4_[31:0]  pc
+Xpc clk reset ann_pcsel[2:0] radata[31:2] br_pcb[30:2] ia[31:0] if_pc4_[31:0]  pc
 
 * PIPELINE STAGE 1-2 BORDER
 .connect 0 exe_pc4_[1:0]
@@ -188,21 +189,30 @@ Xpc clk reset br_pcsel[2:0] radata[31:2] pcb[30:2] ia[31:0] if_pc4_[31:0]  pc
 Xexe_regpc if_pc4_[31:2] clk#30 exe_pc4_[31:2] dreg
 
 // Instruction Register, with Annul logic defaulting to ADD(R31,R31,R31)=0x87FFFF
-Xannul annul#32  id[31:0]  vdd 0#5 vdd#26  if_ir[31:0] mux2
+Xannul_id annul#32  id[31:0]  vdd 0#5 vdd#26  if_ir[31:0] mux2
 Xexe_regid if_ir[31:0] clk#32 exe_ir[31:0] dreg
-
-// Branch Prediction Register + logic
-.connect if_br 0
-Xexe_brpred if_br clk exe_br dreg
-Xbrpred_chk id[31:26] _brtest brtest
-Xbrpred_ann _brtest not_rxij not_br_hit br_flag and3 // _brtest && !annul
-Xbrpred_sel br_flag#3 pcsel[2:0]  0 0 if_br  br_pcsel[2:0] mux2
 
 // annul when PCSEL == XAdr (0b100), IllOp (0b011), or JT (0b010)
 // annul if incorrectly predicted BR (0b001) or PC+4 (0b000)
 Xsetannul_rxij reset pcsel[2] pcsel[1] not_rxij   nor3
-Xsetannul_br   exe_br pcsel[0]         not_br_hit xnor2
-Xsetannul      not_rxij not_br_hit annul nand2
+Xsetannul_br   exe_br pcsel[0]         not_br_miss xnor2
+Xsetannul      not_rxij not_br_miss annul nand2
+
+Xsetrxij       not_rxij is_rxij inverter
+Xsetfailbr     is_rxij not_br_miss br_miss nor2  // br_miss = !rxij && br_miss = !(rxij || !br_miss)
+
+// Branch Prediction Register + logic
+Xbrpred_chk id[31:26] _brtest brtest
+Xbrpred_ann _brtest not_rxij not_br_miss br_flag and3 // _brtest && !annul
+Xbrpred vdd br_flag if_br and2		// for now, always take branch
+Xexe_brpred if_br clk exe_br dreg	// store choice in register
+//Xbrpred_reg brpred_wr[1:0] clk#2 brpred_rd[1:0] dreg
+
+// set PCSEL for branch prediction and annul
+//TODO: strip out BR handling from ctl table, move here
+Xbrpred_sel br_flag#3 pcsel[2:0]  0 0 if_br  br_pcsel[2:0] mux2
+Xpcsel_ann br_miss#3 br_pcsel[2:0] 0 0 vdd  ann_pcsel[2:0] mux2 // always take branch (to correct) if br_miss
+
 
 * CTL logic
 Xctl reset _irq z exe_ir[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr   ctl
@@ -211,6 +221,17 @@ Xctl reset _irq z exe_ir[31:26] pcsel[2:0] wasel asel ra2sel bsel alufn[5:0] wds
 Xpcb  exe_pc4_[30:2]  exe_ir[14]#13 exe_ir[15:0]  c[29:2] 0  pcb[30:2]  c[30:2] fulladder
 .connect pcb[31] ia[31]
 .connect pcb[1:0] 0
+
+* pc branch offset (prediction and annul correction)
+// calculate if-stage pcb
+Xbrpcb      if_pc4_[30:2]  exe_ir[14]#13 exe_ir[15:0]  brc[29:2] 0  if_pcb[30:2]  brc[30:2] fulladder
+.connect if_pcb[31] ia[31]
+.connect if_pcb[1:0] 0
+// select annul - invert choice made at IF stage (recorded in exe_br)
+Xbrpcbann exe_br#29 pcb[30:2] exe_pc4_[30:2] an_pcb[30:2] mux2
+// select final pc branch address (if_br will be reset by an annul)
+Xbrpcbsel if_br#29 an_pcb[30:2] if_pcb[30:2] br_pcb[30:2] mux2
+
 
 * registers
 Xregfile clk werf wasel ra2sel ra[4:0] rb[4:0] rc[4:0]
