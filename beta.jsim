@@ -194,6 +194,11 @@ Xpc_pred br_pred#30  pc[31:2]      pcr[31:2]      pred_pc[31:2] mux2
 Xpc_miss z#30        last_pc[31:2] last_pcr[31:2] miss_pc[31:2] mux2
 Xpc_br   br_annul#30 pred_pc[31:2] miss_pc[31:2]  br_pc[31:2]   mux2
 
+// niceties for graphing
+.connect br_pc[1:0] 0
+.connect pred_pc[1:0] 0
+.connect miss_pc[1:0] 0
+
 .ends
 
 
@@ -229,6 +234,12 @@ Xbr clk reset ia[31:2] id[31:0] z br_pc[31:2] pc[31:2] pcr[31:2] br_annul branch
 * annul logic, defaulting IR[31:0] to ADD(R31,R31,R31)=0x87FFFF
 Xannulchk pc_annul br_annul annul or2
 Xannul annul#32 id[31:0] vdd 0#5 vdd#26  ir[31:0] mux2
+
+// niceties for graphing
+.connect br_pc[1:0] 0
+.connect pc[1:0] 0
+.connect pcr[1:0] 0
+.connect ia[1:0] 0
 
 .ends
 
