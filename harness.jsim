@@ -27,9 +27,13 @@ Vreset reset 0 pwl(0ns 3.3v, 15ns 3.3v, 15.1ns 0v)
 // BENMARK:
 // 1e-10/([area]e-12*[ns]e-9)
 
-// BMK = 39.47 @ 299054 mc2
+// BMK = 39.99 @ 295196 mc2
 Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
 .tran 8472ns
+
+// BMK = 39.99 @ 295196 mc2
+//Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
+//.tran 8472ns
 
 // BMK = 39.47 @ 299054 mc2
 //Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)

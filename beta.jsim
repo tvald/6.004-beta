@@ -3,11 +3,12 @@
 .include "stdalu.jsim"
 .include "harness.jsim"
 
-.subckt pc clk reset pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:0] pc_annul
+.subckt pc clk reset pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:2] pc_annul
 
-.connect ia[1:0] 0
 .connect br_pc[31] ia[31]
 .connect br_pc[1:0] 0
+.connect ia[1:0] 0
+.connect jt[1:0] 0
 .connect d[1:0] 0
 
 Xjt31 ia[31] jt[31] _jt31 and2
@@ -154,7 +155,7 @@ Xctl vdd 0 0 id[31:26] // one read port
 
 
 // BRANCH PREDICTION
-.subckt branch_ctl clk reset ia[31:0] id[31:0] z br_pc[31:0] pc[31:0] pcr[31:0] br_annul
+.subckt branch_ctl clk reset ia[31:2] id[31:0] z br_pc[31:2] last_pc[31:2] last_pcr[31:2] br_annul
 
 // branch instruction flag
 Xb1 id[27:26] b1 xor2
@@ -170,7 +171,7 @@ Xpc4 ia[30:2] ci[29:2] vdd pc[30:2] ci[30:2] incrementer
 
 // pc branch / relative offset
 Xidbuf id[15:0] _id[15:0] buffer_8
-Xpcr 0#3 pc[30:2] 0#3 _id[15]#13 _id[15:0] 0 _[2:0] pcr[30:2] _[3] cs_adder32
+Xpcr 0#3 pc[30:2] 0#3 _id[15]#13 _id[15:0] 0 _[2:0] pcr[30:2] _[3] cs_adder32 //TODO: simplify me
 //Xpcr  pc[30:2]  _id[15]#13 _id[15:0]  c[29:2] 0  pcr[30:2]  c[30:2] fulladder
 .connect pcr[31] ia[31]
 .connect pcr[1:0] 0
@@ -182,50 +183,49 @@ Xbrpredbuf _br_pred br_pred buffer_8
 // store values for next phase
 Xregpred br_pred clk last_pred dreg	// branch prediction
 Xregflag br_flag clk last_flag dreg	// was branch instruction
-Xregpc   pc[31:0]  clk#32 last_pc[31:0]  dreg	// last pc increment
-Xregpcr  pcr[31:0] clk#32 last_pcr[31:0] dreg	// last pc branch / relative
+Xregpc   pc[31:2]  clk#30 last_pc[31:2]  dreg	// last pc increment
+Xregpcr  pcr[31:2] clk#30 last_pcr[31:2] dreg	// last pc branch / relative
 
 // annul if messed up last prediction
 Xbrmiss last_pred z br_miss xor2
 Xannul last_flag br_miss br_annul and2
 
 // set next pc instruction address
-Xpc_pred br_pred#32 pc[31:0] pcr[31:0] pred_pc[31:0] mux2
-Xpc_miss z#32 last_pc[31:0] last_pcr[31:0] miss_pc[31:0] mux2
-Xpc_br   br_annul#32 pred_pc[31:0] miss_pc[31:0] br_pc[31:0] mux2
+Xpc_pred br_pred#30  pc[31:2]      pcr[31:2]      pred_pc[31:2] mux2
+Xpc_miss z#30        last_pc[31:2] last_pcr[31:2] miss_pc[31:2] mux2
+Xpc_br   br_annul#30 pred_pc[31:2] miss_pc[31:2]  br_pc[31:2]   mux2
 
 .ends
 
 
 // BETA: COMPLETE CIRCUIT
 .subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
+.connect ia[1:0] ma[1:0] 0
+Xirq ia[31] irq 0 _irq mux2  // supervisor bit overrides irq
 
 // IF: INSTRUCTION FETCH
-Xbeta1 clk reset irq z pcsel[1:0] jt[31:0] ia[31:0] id[31:0] if_pc[31:0] if_pcr[31:0] if_ir[31:0] beta_1
+Xbeta1 clk reset z pcsel[1:0] jt[31:2] ia[31:2] id[31:0] if_pc[31:2] if_pcr[31:2] if_ir[31:0] beta_1
 
 // IF-EXE BORDER
-.connect 0 exe_pc[1:0]
-Xregpc  if_pc[31:2]  clk#30 exe_pc[31:2]  dreg
-Xregpcr if_pcr[31:0] clk#32 exe_pcr[31:0] dreg
+Xexepc  if_pc[31:2]  exe_pc[31:2]  cnxn  // registers inside stage 1
+Xexepcr if_pcr[31:2] exe_pcr[31:2] cnxn  // registers inside stage 1
 Xregir  if_ir[31:0]  clk#32 exe_ir[31:0]  dreg
 
+
 // EXE: INSTRUCTION EXECUTION
-Xbeta2 clk reset irq exe_pc[31:0] exe_pcr[31:0] exe_ir[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0] z pcsel[1:0] jt[31:0] beta_2
+Xbeta2 clk reset _irq exe_pc[31:2] exe_pcr[31:2] exe_ir[31:0] ma[31:2] moe mrd[31:0] wr mwd[31:0] z pcsel[1:0] jt[31:2] beta_2
 
 .ends
 
 
 // BETA STAGE 1: INSTRUCTION FETCH
-.subckt beta_1 clk reset irq z pcsel[1:0] jt[31:0] ia[31:0] id[31:0] pc[31:0] pcr[31:0] ir[31:0]
-
-* supervisor bit overrides irq
-Xirq ia[31] irq 0 _irq mux2
+.subckt beta_1 clk reset z pcsel[1:0] jt[31:2] ia[31:2] id[31:0] pc[31:2] pcr[31:2] ir[31:0]
 
 * PC Control
-Xpc clk reset pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:0] pc_annul pc
+Xpc clk reset pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:2] pc_annul pc
 
 * Branch Control
-Xbr clk reset ia[31:0] id[31:0] z br_pc[31:0] pc[31:0] pcr[31:0] br_annul branch_ctl
+Xbr clk reset ia[31:2] id[31:0] z br_pc[31:2] pc[31:2] pcr[31:2] br_annul branch_ctl
 
 * annul logic, defaulting IR[31:0] to ADD(R31,R31,R31)=0x87FFFF
 Xannulchk pc_annul br_annul annul or2
@@ -235,7 +235,7 @@ Xannul annul#32 id[31:0] vdd 0#5 vdd#26  ir[31:0] mux2
 
 
 // BETA STAGE 2: INSTRUCTION EXECUTION
-.subckt beta_2 clk reset irq pc[31:0] pcr[31:0] ir[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0] z pcsel[1:0] jt[31:0]
+.subckt beta_2 clk reset irq pc[31:2] pcr[31:2] ir[31:0] ma[31:2] moe mrd[31:0] wr mwd[31:0] z pcsel[1:0] jt[31:2]
 
 * control logic
 Xctl reset irq z ir[31:26] pcsel[1:0] wasel asel ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr   ctl
@@ -253,7 +253,7 @@ Xzout znan[1:0] _z nor2
 Xzmod _z ir[27] z xor2
 
 * route JT
-Xjt radata[31:2] 0#2 jt[31:0] cnxn
+Xjt radata[31:2] jt[31:2] cnxn
 
 * ALU input selection
 Xasel asel#32 radata[31:0] 0 pcr[30:2] 0#2    a[31:0] mux2
@@ -263,9 +263,9 @@ Xbsel bsel#32 rbdata[31:0] ir[15]#16 ir[15:0] b[31:0] mux2
 Xalu alufn[5:0] a[31:0] b[31:0] alu[31:0]             alu
 
 * write data selection
-Xwdsel wdsel[0]#32 wdsel[1]#32 pc[31:0] alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
+Xwdsel wdsel[0]#32 wdsel[1]#32 pc[31:2] 0#2 alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
 
-Xma  alu[31:0] ma[31:0] cnxn
+Xma  alu[31:2] ma[31:2] cnxn
 Xmwd rbdata[31:0] mwd[31:0] cnxn
 
 .ends
