@@ -92,7 +92,7 @@ Xcmpb31 exe_rb[4:0] rb_not31 cmp5n31
 Xabyp werf ra_match ra_not31 _bypa and3
 Xbbyp werf rb_match rb_not31 _bypb and3
 
-* STALL: LD (0b011000) && (bypa || bypb)
+* STALL: LD (0b011000, 0x18) && (bypa || bypb)
 Xld0 mem_op[31] mem_op[28:26] ld0 nor4
 Xld1 _bypa _bypb byp_flag or2
 Xld2 mem_op[30:29] ld0 byp_flag _stall and4
@@ -350,18 +350,20 @@ Xbeta1 clk reset stall z pcsel[1:0] jt[31:2] ia[31:2] id[31:0] if_pc[31:2] if_pc
 // IF-EXE BORDER
 Xexepc  if_pc[31:2]  exe_pc[31:2]  cnxn  // registers inside stage 1
 Xexepcr if_pcr[31:2] exe_pcr[31:2] cnxn  // registers inside stage 1
-Xexeir  if_ir[31:0]  clk#32 exe_ir[31:0]  dreg
-
-* reset logic
-Xreset_exe reset#32 exe_ir[31:0] vdd 0#5 vdd#26  rexe_ir[31:0] mux2
+Xexestall stall#32 if_ir[31:0] exe_ir[31:0] st_ir[31:0] mux2
+Xexeir  st_ir[31:0]  clk#32 exe_ir[31:0]  dreg
 
 // EXE: INSTRUCTION EXECUTION
-Xbeta2 clk reset _irq exe_pc[31:2] exe_pcr[31:2] rexe_ir[31:0] exe_alu[31:0] exe_wd[31:0] z pcsel[1:0] jt[31:2] werf wasel wa_rc[4:0] wdata[31:0] mem_ir[31:26] stall beta_2
+Xbeta2 clk reset _irq exe_pc[31:2] exe_pcr[31:2] exe_ir[31:0] exe_alu[31:0] exe_wd[31:0] z pcsel[1:0] jt[31:2] werf wasel wa_rc[4:0] wdata[31:0] mem_ir[31:26] stall beta_2
+
+* reset logic
+Xannul_exe reset stall exe_annul or2
+Xexe_annul exe_annul#32 exe_ir[31:0] vdd 0#5 vdd#26  an_exe_ir[31:0] mux2
 
 // EXE-MEM BORDER
 Xmemma  exe_alu[31:0] clk#32 mem_alu[31:0] dreg
 Xmempc  exe_pc[31:2] clk#30 mem_pc[31:2] dreg
-Xmemir  rexe_ir[31:0] clk#32 mem_ir[31:0] dreg
+Xmemir  an_exe_ir[31:0] clk#32 mem_ir[31:0] dreg
 Xmemwd  exe_wd[31:0] clk#32 mem_wd[31:0] dreg
 
 * reset logic
@@ -381,9 +383,10 @@ Xbeta3 reset _irq mem_pc[31:2] rmem_ir[31:0] mem_alu[31:0] moe mrd[31:0] wr werf
 .subckt beta_1 clk reset _stall z pcsel[1:0] jt[31:2] ia[31:2] id[31:0] pc[31:2] pcr[31:2] ir[31:0]
 
 * stall override
-Xbrpcannul br_annul pc_annul not_brpc_annul nor2
-Xstall not_brpc_annul _stall vstall nand2
-Xstinv vstall stall inverter_8
+//Xbrpcannul br_annul pc_annul not_brpc_annul nor2
+//Xstall not_brpc_annul _stall vstall nand2
+//Xstinv vstall stall inverter_8
+Xstbuf _stall stall buffer_8
 
 * PC Control
 Xpc clk reset stall pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:2] pc_annul pc
