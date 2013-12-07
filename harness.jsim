@@ -28,9 +28,8 @@ Vreset reset 0 pwl(0ns 3.3v, 15ns 3.3v, 15.1ns 0v)
 // 1e-10/([area]e-12*[ns]e-9)
 
 // BMK = 40.18 @ 293789 mc2
-Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
-//Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,5.93ns)
-.tran 11100ns
+Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.05ns)
+.tran 8470ns
 
 // BMK = 40.18 @ 293789 mc2
 //Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
