@@ -27,9 +27,13 @@ Vreset reset 0 pwl(0ns 3.3v, 9ns 3.3v, 9.1ns 0v)
 // BENMARK:
 // 1e-10/([area]e-12*[ns]e-9)
 
+// BMK = 45.02 @ 310414 mc2
+Vclk clk 0 pulse(3.3,0,3.42ns,.01ns,.01ns,3.42ns)
+.tran 7155ns
+
 // BMK = 43.75 @ 310371 mc2
-Vclk clk 0 pulse(3.3,0,3.52ns,.01ns,.01ns,3.52ns)
-.tran 7364ns
+//Vclk clk 0 pulse(3.3,0,3.52ns,.01ns,.01ns,3.52ns)
+//.tran 7364ns
 
 // BMK = 40.18 @ 293789 mc2
 //Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
@@ -66,7 +70,7 @@ Vclk clk 0 pulse(3.3,0,3.52ns,.01ns,.01ns,3.52ns)
 //.plot Xbeta.Xbeta1.annul
 //.plot Xbeta.Xbeta1.stall
 
-/* ops and registers *
+//* ops and registers *
 .plot ia[31:0]
 .plot betaop(Xbeta.if_ir[31:26])
 .plot betaop(Xbeta.exe_ir[31:26])
@@ -75,6 +79,15 @@ Vclk clk 0 pulse(3.3,0,3.52ns,.01ns,.01ns,3.52ns)
 //.plot reg(Xbeta.Xbeta2.Xregfile.rb[4:0])
 //.plot reg(Xbeta.Xbeta2.Xregfile.rc[4:0])
 //*/
+
+.plot Xbeta.Xbeta1.Xbr.z
+.plot Xbeta.Xbeta1.Xbr.br_miss
+.plot Xbeta.Xbeta1.Xbr.br_annul
+.plot Xbeta.Xbeta1.annul
+.plot Xbeta.Xbeta1.id[31:0]
+.plot Xbeta.if_ir[31:0]
+.plot Xbeta.st_ir[31:0]
+
 
 /*
 .plot Xbeta.Xbeta1.Xbr.z
@@ -89,7 +102,7 @@ Vclk clk 0 pulse(3.3,0,3.52ns,.01ns,.01ns,3.52ns)
 .plot Xbeta.Xbeta1.Xpc.d[31:2]
 */
 
-//* all registers *
+/* all registers *
 .plot ia[31:0]
 .plot betaop(Xbeta.if_ir[31:26])
 .plot betaop(Xbeta.exe_ir[31:26])
@@ -99,8 +112,8 @@ Vclk clk 0 pulse(3.3,0,3.52ns,.01ns,.01ns,3.52ns)
 .plot Xbeta.Xbeta1.Xbr.st_pred
 .plot Xbeta.Xbeta1.Xbr.st_pc[31:2]
 .plot Xbeta.Xbeta1.Xbr.st_pcr[31:2]
-.plot Xbeta.st_ir[31:26]
-//.plot Xbeta.exe_pc[31:2]
+.plot Xbeta.st_ir[31:0]
+.plot Xbeta.exe_pc[31:2]
 .plot Xbeta.exe_wd[31:0]
 .plot Xbeta.exe_alu[31:0]
 .plot Xbeta.an_exe_ir[31:0]

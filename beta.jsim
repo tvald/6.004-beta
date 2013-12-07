@@ -405,7 +405,8 @@ Xpc clk reset stall pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:2] pc_annul pc
 Xbr clk reset stall ia[31:2] id[31:0] z br_pc[31:2] pc[31:2] pcr[31:2] br_annul branch_ctl
 
 * annul logic, defaulting IR[31:0] to ADD(R31,R31,R31)=0x87FFFF
-Xannulchk pc_annul br_annul stall annul or3
+Xannulchk pc_annul br_annul stall _annul or3
+Xannulbuf _annul annul buffer_8
 Xannul annul#32 id[31:0] vdd 0#5 vdd#26  ir[31:0] mux2
 
 // niceties for graphing
