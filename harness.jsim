@@ -28,8 +28,9 @@ Vreset reset 0 pwl(0ns 3.3v, 15ns 3.3v, 15.1ns 0v)
 // 1e-10/([area]e-12*[ns]e-9)
 
 // BMK = 40.18 @ 293789 mc2
-Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
-.tran 8472ns
+//Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
+Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,5.93ns)
+.tran 15472ns
 
 // BMK = 40.18 @ 293789 mc2
 //Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
@@ -69,9 +70,67 @@ Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
 //.plot Xbeta.Xbeta1.br_annul Xbeta.Xbeta1.pc_annul
 //.plot _
 .plot ia[31:0]
-.plot betaop(Xbeta.exe_ir[31:26])
+//.plot id[31:0]
+//.plot moe
+//.plot wr
+//.plot ma[11:2]
+//.plot md[31:0]
+//.plot Xbeta.Xbeta1.pc[31:0]
+//.plot Xbeta.Xbeta1.pcr[31:0]
+//.plot Xbeta.Xbeta1.Xbr.pred_pc[31:0]
+//.plot Xbeta.Xbeta1.Xbr.miss_pc[31:0]
+//.plot betaop(Xbeta.Xbeta1.Xbr.id[31:26])
+//.plot Xbeta.Xbeta1.Xbr.br_flag
+.plot Xbeta.Xbeta1.Xbr.last_flag
+//.plot Xbeta.Xbeta1.Xbr.br_pred
+//.plot Xbeta.Xbeta1.Xbr.last_pred Xbeta.Xbeta1.Xbr.z
+.plot Xbeta.Xbeta1.Xbr.z
+.plot Xbeta.Xbeta1.Xbr.last_pred
+.plot Xbeta.Xbeta1.Xbr.br_miss
+//.plot Xbeta.Xbeta1.Xbr.br_annul
+//.plot Xbeta.Xbeta1.br_pc[31:0]
 //.plot Xbeta.pcsel[1:0]
-.plot _
+
+.plot Xbeta.Xbeta1.br_annul
+.plot Xbeta.Xbeta1.pc_annul
+.plot Xbeta.Xbeta1.stall
+
+//.plot Xbeta.Xbeta2.alufn[5:0]
+//.plot reg(Xbeta.Xbeta2.Xregfile.ra[4:0])
+//.plot reg(Xbeta.Xbeta2.Xregfile.ra2mux[4:0])
+//.plot Xbeta.Xbeta2.Xregfile.bypa
+//.plot Xbeta.Xbeta2.Xregfile.bypb
+//.plot Xbeta.Xbeta2.Xregfile.Xbypctl.ra_match
+//.plot Xbeta.Xbeta2.Xregfile.Xbypctl.ra_not31
+//.plot Xbeta.Xbeta2.Xregfile.adata[31:0]
+//.plot Xbeta.Xbeta2.Xregfile.bdata[31:0]
+//.plot Xbeta.Xbeta2.a[31:0]
+//.plot Xbeta.Xbeta2.b[31:0]
+//.plot Xbeta.Xbeta2.alu[31:0]
+
+//.plot Xbeta.Xbeta1.Xbr.z
+//.plot Xbeta.Xbeta2.Xregfile.bypa
+//.plot Xbeta.Xbeta2.Xregfile.bypb
+//.plot Xbeta.mem_alu[31:0]
+//.plot Xbeta.Xbeta3.wdsel[1:0]
+//.plot Xbeta.Xbeta2.Xregfile.adata[31:0]
+//.plot reg(Xbeta.Xbeta3.wa_rc[4:0])
+//.plot reg(Xbeta.Xbeta2.Xregfile.wa[4:0])
+//.plot Xbeta.Xbeta2.Xregfile.wdata[31:0]
+//.plot Xbeta.Xbeta2.Xregfile.werf
+//.plot Xbeta.Xbeta2.Xregfile.yadata[31:0]
+
+//.plot _
+//.plot reg(id[20:16])
+//.plot reg(id[15:11])
+//.plot reg(id[25:21])
+.plot betaop(Xbeta.if_ir[31:26])
+//.plot reg(Xbeta.Xbeta2.Xregfile.ra[4:0])
+//.plot reg(Xbeta.Xbeta2.Xregfile.rb[4:0])
+//.plot reg(Xbeta.Xbeta2.Xregfile.rc[4:0])
+.plot betaop(Xbeta.exe_ir[31:26])
+.plot betaop(Xbeta.mem_ir[31:26])
+//.plot _
 //.plot ia[31:0]
 //.plot Xbeta.Xbeta1.pc[31:0]
 //.plot Xbeta.Xbeta1.id[31:0]
@@ -82,25 +141,22 @@ Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
 //.plot Xbeta.Xbeta1.Xbr.br_pred
 //.plot Xbeta.Xbeta1.Xbr.br_annul
 
-//.plot Xbeta.Xbeta1.Xbr.last_pred
-//.plot Xbeta.Xbeta1.Xbr.br_miss
-//.plot Xbeta.Xbeta1.Xbr.z
 //.plot id[31:0]
 //.plot _
 
-.plot Xbeta.Xbeta2.ir[31:0]
-.plot Xbeta.Xbeta2.Xregfile.ra2mux[4:0]
-.plot Xbeta.Xbeta2.Xregfile.bdata[31:0]
-.plot Xbeta.Xbeta2.radata[31:0]
-.plot Xbeta.Xbeta2.ra2sel
-.plot Xbeta.Xbeta2.rbdata[31:0]
-.plot Xbeta.Xbeta2.b[31:0]
-.plot Xbeta.Xbeta2.alufn[5:0]
+//.plot Xbeta.Xbeta2.ir[31:0]
+//.plot Xbeta.Xbeta2.Xregfile.ra2mux[4:0]
+//.plot Xbeta.Xbeta2.Xregfile.bdata[31:0]
+//.plot Xbeta.Xbeta2.radata[31:0]
+//.plot Xbeta.Xbeta2.ra2sel
+//.plot Xbeta.Xbeta2.rbdata[31:0]
+//.plot Xbeta.Xbeta2.b[31:0]
+//.plot Xbeta.Xbeta2.alufn[5:0]
 //.plot Xbeta.Xbeta2.alu[31:0]
-.plot ma[31:0]
-.plot mrd[31:0]
-.plot Xbeta.Xbeta2.wdata[31:0]
-.plot Xbeta.Xbeta2.wdsel[1:0]
+//.plot ma[31:0]
+//.plot mrd[31:0]
+//.plot Xbeta.Xbeta2.wdata[31:0]
+//.plot Xbeta.Xbeta2.wdsel[1:0]
 //.plot _
 //.plot moe
 //.plot wr
