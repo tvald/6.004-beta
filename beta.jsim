@@ -286,7 +286,10 @@ Xctl vdd 0 0 id[31:26] // one read port
 
 
 // BRANCH PREDICTION
-.subckt branch_ctl clk reset stall ia[31:2] id[31:0] z br_pc[31:2] last_pc[31:2] last_pcr[31:2] br_annul
+.subckt branch_ctl clk reset _stall ia[31:2] id[31:0] _z br_pc[31:2] last_pc[31:2] last_pcr[31:2] br_annul
+
+// buffers
+Xbuff0 _stall stall buffer_8
 
 // branch instruction flag
 Xb1 id[27:26] b1 xor2
@@ -322,9 +325,13 @@ Xregflag st_flag clk last_flag dreg	// was branch instruction
 Xregpc   st_pc[31:2]  clk#30 last_pc[31:2]  dreg	// last pc increment
 Xregpcr  st_pcr[31:2] clk#30 last_pcr[31:2] dreg	// last pc branch / relative
 
+// buffers
+Xbuff1 _z z buffer_8
+Xbuff2 _br_annul br_annul buffer_8
+
 // annul if messed up last prediction
 Xbrmiss last_pred z br_miss xor2
-Xannul last_flag br_miss br_annul and2
+Xannul last_flag br_miss _br_annul and2
 
 // set next pc instruction address
 Xpc_pred br_pred#30  pc[31:2]      pcr[31:2]      pred_pc[31:2] mux2
@@ -357,14 +364,17 @@ Xexeir  st_ir[31:0]  clk#32 exe_ir[31:0]  dreg
 Xbeta2 clk reset _irq exe_pc[31:2] exe_pcr[31:2] exe_ir[31:0] exe_alu[31:0] exe_wd[31:0] z pcsel[1:0] jt[31:2] werf wasel wa_rc[4:0] wdata[31:0] mem_ir[31:26] stall beta_2
 
 * reset logic
-Xannul_exe reset stall exe_annul or2
+Xbuff_st stall _stall buffer_4
+Xannul_exe reset _stall exe_annul or2
 Xexe_annul exe_annul#32 exe_ir[31:0] vdd 0#5 vdd#26  an_exe_ir[31:0] mux2
+Xreset_alu _stall#32 exe_alu[31:0] 0#32 exe_st_alu[31:0] mux2
+Xreset_wd  _stall#32 exe_wd[31:0] 0#32 exe_st_wd[31:0] mux2
 
 // EXE-MEM BORDER
-Xmemma  exe_alu[31:0] clk#32 mem_alu[31:0] dreg
+Xmemma  exe_st_alu[31:0] clk#32 mem_alu[31:0] dreg
 Xmempc  exe_pc[31:2] clk#30 mem_pc[31:2] dreg
 Xmemir  an_exe_ir[31:0] clk#32 mem_ir[31:0] dreg
-Xmemwd  exe_wd[31:0] clk#32 mem_wd[31:0] dreg
+Xmemwd  exe_st_wd[31:0] clk#32 mem_wd[31:0] dreg
 
 * reset logic
 Xreset_mem reset#32 mem_ir[31:0] vdd 0#5 vdd#26  rmem_ir[31:0] mux2

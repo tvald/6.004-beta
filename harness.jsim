@@ -22,14 +22,14 @@ Xmem
 // cycles depending on how it executes instructions. Run only as long as necessary
 // to complete the benchmark since the ending simulation time is used to compute
 // your circuit?s Benmark
-Vreset reset 0 pwl(0ns 3.3v, 15ns 3.3v, 15.1ns 0v)
+Vreset reset 0 pwl(0ns 3.3v, 9ns 3.3v, 9.1ns 0v)
 
 // BENMARK:
 // 1e-10/([area]e-12*[ns]e-9)
 
-// BMK = 40.18 @ 293789 mc2
-Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.05ns)
-.tran 8470ns
+// BMK = 43.75 @ 310371 mc2
+Vclk clk 0 pulse(3.3,0,3.52ns,.01ns,.01ns,3.52ns)
+.tran 7364ns
 
 // BMK = 40.18 @ 293789 mc2
 //Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.23ns)
@@ -63,12 +63,53 @@ Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.05ns)
 
 .plot clk
 //.plot reset
-.plot Xbeta.Xbeta1.annul
+//.plot Xbeta.Xbeta1.annul
+//.plot Xbeta.Xbeta1.stall
+
+/* ops and registers *
+.plot ia[31:0]
+.plot betaop(Xbeta.if_ir[31:26])
+.plot betaop(Xbeta.exe_ir[31:26])
+.plot betaop(Xbeta.mem_ir[31:26])
+//.plot reg(Xbeta.Xbeta2.Xregfile.ra[4:0])
+//.plot reg(Xbeta.Xbeta2.Xregfile.rb[4:0])
+//.plot reg(Xbeta.Xbeta2.Xregfile.rc[4:0])
+//*/
+
+/*
+.plot Xbeta.Xbeta1.Xbr.z
+.plot Xbeta.Xbeta1.Xbr.br_miss
+.plot Xbeta.Xbeta1.Xbr.miss_pc[31:0]
+.plot Xbeta.Xbeta1.Xbr.stall
+.plot Xbeta.Xbeta1.Xbr.last_flag
+.plot Xbeta.Xbeta1.Xbr.br_annul
+.plot Xbeta.Xbeta1.Xpc.br_pc[31:2]
+.plot Xbeta.Xbeta1.Xpc.__d[31:2]
+.plot Xbeta.Xbeta1.Xpc._d[31:2]
+.plot Xbeta.Xbeta1.Xpc.d[31:2]
+*/
+
+//* all registers *
+.plot ia[31:0]
+.plot betaop(Xbeta.if_ir[31:26])
+.plot betaop(Xbeta.exe_ir[31:26])
+.plot betaop(Xbeta.mem_ir[31:26])
+.plot Xbeta.Xbeta1.Xpc.d[31:2]
+.plot Xbeta.Xbeta1.Xbr.st_flag
+.plot Xbeta.Xbeta1.Xbr.st_pred
+.plot Xbeta.Xbeta1.Xbr.st_pc[31:2]
+.plot Xbeta.Xbeta1.Xbr.st_pcr[31:2]
+.plot Xbeta.st_ir[31:26]
+//.plot Xbeta.exe_pc[31:2]
+.plot Xbeta.exe_wd[31:0]
+.plot Xbeta.exe_alu[31:0]
+.plot Xbeta.an_exe_ir[31:0]
+//*/
+
 //.plot Xbeta.Xbeta1.br_annul
 //.plot Xbeta.Xbeta1.pc_annul
 //.plot Xbeta.Xbeta1.br_annul Xbeta.Xbeta1.pc_annul
 //.plot _
-.plot ia[31:0]
 //.plot id[31:0]
 //.plot moe
 //.plot wr
@@ -76,13 +117,6 @@ Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.05ns)
 //.plot md[31:0]
 //.plot Xbeta.Xbeta1.pc[31:0]
 //.plot Xbeta.Xbeta1.pcr[31:0]
-//.plot Xbeta.Xbeta1.Xbr.pred_pc[31:0]
-//.plot Xbeta.Xbeta1.Xbr.miss_pc[31:0]
-//.plot betaop(Xbeta.Xbeta1.Xbr.id[31:26])
-//.plot Xbeta.Xbeta1.Xbr.br_flag
-//.plot Xbeta.Xbeta1.Xbr.last_flag
-//.plot Xbeta.Xbeta1.Xbr.br_pred
-//.plot Xbeta.Xbeta1.Xbr.last_pred Xbeta.Xbeta1.Xbr.z
 
 //.plot reg(Xbeta.Xbeta2.Xregfile.wa[4:0])
 //.plot reg(Xbeta.Xbeta2.Xregfile.ra[4:0])
@@ -91,17 +125,16 @@ Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.05ns)
 //.plot Xbeta.Xbeta2.Xregfile.yadata[31:0]
 //.plot Xbeta.Xbeta2.radata[31:0]
 //.plot Xbeta.Xbeta1.Xbr.z
-//.plot Xbeta.Xbeta1.Xbr.br_miss
 
 //.plot Xbeta.Xbeta1.Xbr.br_annul
 //.plot Xbeta.Xbeta1.br_pc[31:0]
 //.plot Xbeta.pcsel[1:0]
 
-.plot Xbeta.Xbeta1.br_annul
+//.plot Xbeta.Xbeta1.br_annul
 //.plot Xbeta.Xbeta1.pc_annul
 //.plot Xbeta.Xbeta2.Xregfile.Xbypctl.mem_op[31:26]
-.plot Xbeta.Xbeta2.Xregfile.Xbypctl.byp_flag
-.plot Xbeta.Xbeta1.stall
+//.plot Xbeta.Xbeta2.Xregfile.Xbypctl.byp_flag
+//.plot Xbeta.Xbeta1.stall
 
 //.plot Xbeta.Xbeta2.alufn[5:0]
 //.plot Xbeta.Xbeta2.Xregfile.bypa
@@ -127,12 +160,6 @@ Vclk clk 0 pulse(3.3,0,4.23ns,.01ns,.01ns,4.05ns)
 //.plot reg(id[20:16])
 //.plot reg(id[15:11])
 //.plot reg(id[25:21])
-.plot betaop(Xbeta.if_ir[31:26])
-.plot reg(Xbeta.Xbeta2.Xregfile.ra[4:0])
-.plot reg(Xbeta.Xbeta2.Xregfile.rb[4:0])
-.plot reg(Xbeta.Xbeta2.Xregfile.rc[4:0])
-.plot betaop(Xbeta.exe_ir[31:26])
-.plot betaop(Xbeta.mem_ir[31:26])
 //.plot _
 //.plot ia[31:0]
 //.plot Xbeta.Xbeta1.pc[31:0]
