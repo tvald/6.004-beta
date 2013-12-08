@@ -27,9 +27,9 @@ Vreset reset 0 pwl(0ns 3.3v, 9ns 3.3v, 9.1ns 0v)
 // BENMARK:
 // 1e-10/([area]e-12*[ns]e-9)
 
-// BMK = 45.02 @ 310414 mc2
-Vclk clk 0 pulse(3.3,0,4.2ns,.01ns,.01ns,4.2ns)
-.tran 10255ns
+// BMK = 46.74 @ 306114 mc2
+Vclk clk 0 pulse(3.3,0,3.01ns,.01ns,.01ns,3.01ns)
+.tran 6989ns
 
 // BMK = 45.02 @ 310414 mc2
 //Vclk clk 0 pulse(3.3,0,3.42ns,.01ns,.01ns,3.42ns)
@@ -72,17 +72,38 @@ Vclk clk 0 pulse(3.3,0,4.2ns,.01ns,.01ns,4.2ns)
 .plot clk
 //.plot reset
 //.plot Xbeta.Xbeta1.annul
-//.plot Xbeta.Xbeta1.stall
+.plot Xbeta.Xbeta1.stall
 
 //* ops and registers *
 .plot ia[31:0]
 .plot betaop(Xbeta.if_ir[31:26])
 .plot betaop(Xbeta.exe_ir[31:26])
-.plot betaop(Xbeta.mem_ir[31:26])
 //.plot reg(Xbeta.Xbeta2.Xregfile.ra[4:0])
 //.plot reg(Xbeta.Xbeta2.Xregfile.rb[4:0])
 //.plot reg(Xbeta.Xbeta2.Xregfile.rc[4:0])
-//*/
+.plot betaop(Xbeta.mem_ir[31:26])
+*/
+
+/* all registers *
+.plot ia[31:0]
+.plot betaop(Xbeta.if_ir[31:26])
+.plot betaop(Xbeta.exe_ir[31:26])
+.plot betaop(Xbeta.mem_ir[31:26])
+.plot Xbeta.Xbeta1.Xpc.d[31:2]
+.plot Xbeta.st_pc[31:2]
+.plot Xbeta.st_ir[31:0]
+.plot Xbeta.exe_pc[31:2]
+.plot Xbeta.exe_wd[31:0]
+.plot Xbeta.exe_alu[31:0]
+.plot Xbeta.an_exe_ir[31:0]
+.plot Xbeta.wdata[31:0]
+*/
+
+.plot Xbeta.ma[31:0]
+.plot Xbeta.moe
+.plot Xbeta.mrd[31:0]
+.plot Xbeta.Xbeta3.wdsel[1:0]
+.plot Xbeta.wdata[31:0]
 
 /*
 .plot Xbeta.Xbeta1.Xbr.z
@@ -94,128 +115,40 @@ Vclk clk 0 pulse(3.3,0,4.2ns,.01ns,.01ns,4.2ns)
 .plot Xbeta.st_ir[31:0]
 */
 
-//*
-.plot Xbeta.Xbeta1.Xbr.z
-//.plot Xbeta.Xbeta1.Xbr.br_miss
-//.plot Xbeta.Xbeta1.Xbr.miss_pc[31:0]
-.plot Xbeta.Xbeta1.Xbr.pc[31:0]
-.plot Xbeta.Xbeta1.Xbr.id[31:0]
-.plot Xbeta.Xbeta1.Xbr.pcr[31:0]
-.plot Xbeta.Xbeta1.Xbr.br_pred
-.plot Xbeta.Xbeta1.Xbr.pred_pc[31:0]
-//.plot Xbeta.Xbeta1.Xbr.stall
-//.plot Xbeta.Xbeta1.Xbr.last_flag
-.plot Xbeta.Xbeta1.Xbr.br_annul
+/*
+.plot Xbeta.Xbeta1.Xpc.pc[31:2]
+.plot Xbeta.Xbeta1.Xpc.exe_pcr[31:2]
+.plot Xbeta.Xbeta1.Xpc.z
 .plot Xbeta.Xbeta1.Xpc.br_pc[31:2]
+.plot Xbeta.Xbeta1.Xpc.pcsel[1:0]
 .plot Xbeta.Xbeta1.Xpc.__d[31:2]
+.plot Xbeta.Xbeta1.Xpc.stall
 .plot Xbeta.Xbeta1.Xpc._d[31:2]
 .plot Xbeta.Xbeta1.Xpc.d[31:2]
 */
 
-/* all registers *
-.plot ia[31:0]
-.plot betaop(Xbeta.if_ir[31:26])
-.plot betaop(Xbeta.exe_ir[31:26])
-.plot betaop(Xbeta.mem_ir[31:26])
-.plot Xbeta.Xbeta1.Xpc.d[31:2]
-.plot Xbeta.Xbeta1.Xbr.st_flag
-.plot Xbeta.Xbeta1.Xbr.st_pred
-.plot Xbeta.Xbeta1.Xbr.st_pc[31:2]
-.plot Xbeta.Xbeta1.Xbr.st_pcr[31:2]
-.plot Xbeta.st_ir[31:0]
-.plot Xbeta.exe_pc[31:2]
-.plot Xbeta.exe_wd[31:0]
-.plot Xbeta.exe_alu[31:0]
-.plot Xbeta.an_exe_ir[31:0]
-//*/
-
-//.plot Xbeta.Xbeta1.br_annul
-//.plot Xbeta.Xbeta1.pc_annul
-//.plot Xbeta.Xbeta1.br_annul Xbeta.Xbeta1.pc_annul
-//.plot _
-//.plot id[31:0]
-//.plot moe
-//.plot wr
-//.plot ma[11:2]
-//.plot md[31:0]
-//.plot Xbeta.Xbeta1.pc[31:0]
-//.plot Xbeta.Xbeta1.pcr[31:0]
-
-//.plot reg(Xbeta.Xbeta2.Xregfile.wa[4:0])
-//.plot reg(Xbeta.Xbeta2.Xregfile.ra[4:0])
-//.plot Xbeta.Xbeta2.Xregfile.adata[31:0]
-//.plot Xbeta.Xbeta2.Xregfile.bypa
-//.plot Xbeta.Xbeta2.Xregfile.yadata[31:0]
-//.plot Xbeta.Xbeta2.radata[31:0]
-//.plot Xbeta.Xbeta1.Xbr.z
-
-//.plot Xbeta.Xbeta1.Xbr.br_annul
-//.plot Xbeta.Xbeta1.br_pc[31:0]
-//.plot Xbeta.pcsel[1:0]
-
-//.plot Xbeta.Xbeta1.br_annul
-//.plot Xbeta.Xbeta1.pc_annul
-//.plot Xbeta.Xbeta2.Xregfile.Xbypctl.mem_op[31:26]
-//.plot Xbeta.Xbeta2.Xregfile.Xbypctl.byp_flag
-//.plot Xbeta.Xbeta1.stall
-
+/*
 //.plot Xbeta.Xbeta2.alufn[5:0]
-//.plot Xbeta.Xbeta2.Xregfile.bypa
-//.plot Xbeta.Xbeta2.Xregfile.bypb
+//.plot Xbeta.Xbeta2.b[31:0]
+//.plot Xbeta.Xbeta2.asel
+//.plot Xbeta.Xbeta2.Xregfile.ra[4:0]
+//.plot Xbeta.Xbeta2.Xregfile.adata[31:0]
+//.plot Xbeta.Xbeta3.Xmemctl._wdsel[1:0]
+//.plot Xbeta.Xbeta3.Xmemctl.irq
+//.plot Xbeta.Xbeta3.wdsel[1:0]
+//.plot Xbeta.Xbeta3.alu[31:0]
+//.plot Xbeta.Xbeta3.Xmemctl._werf
+//.plot Xbeta.Xbeta2.Xregfile.Xbypctl.werf
 //.plot Xbeta.Xbeta2.Xregfile.Xbypctl.ra_match
 //.plot Xbeta.Xbeta2.Xregfile.Xbypctl.ra_not31
-//.plot Xbeta.Xbeta2.Xregfile.adata[31:0]
-//.plot Xbeta.Xbeta2.Xregfile.bdata[31:0]
-
-//.plot Xbeta.Xbeta1.Xbr.z
 //.plot Xbeta.Xbeta2.Xregfile.bypa
-//.plot Xbeta.Xbeta2.Xregfile.bypb
-//.plot Xbeta.mem_alu[31:0]
-//.plot Xbeta.Xbeta3.wdsel[1:0]
-//.plot Xbeta.Xbeta2.Xregfile.adata[31:0]
-//.plot reg(Xbeta.Xbeta3.wa_rc[4:0])
-//.plot reg(Xbeta.Xbeta2.Xregfile.wa[4:0])
 //.plot Xbeta.Xbeta2.Xregfile.wdata[31:0]
-//.plot Xbeta.Xbeta2.Xregfile.werf
-//.plot Xbeta.Xbeta2.Xregfile.yadata[31:0]
-
-//.plot _
-//.plot reg(id[20:16])
-//.plot reg(id[15:11])
-//.plot reg(id[25:21])
-//.plot _
-//.plot ia[31:0]
-//.plot Xbeta.Xbeta1.pc[31:0]
-//.plot Xbeta.Xbeta1.id[31:0]
-//.plot Xbeta.Xbeta1.pcr[31:0]
-//.plot Xbeta.Xbeta1.Xbr.pred_pc[31:0]
-//.plot Xbeta.Xbeta1.br_pc[31:0]
-//.plot Xbeta.Xbeta1.Xbr.br_flag
-//.plot Xbeta.Xbeta1.Xbr.br_pred
-//.plot Xbeta.Xbeta1.Xbr.br_annul
-
-//.plot id[31:0]
-//.plot _
-
-//.plot Xbeta.Xbeta2.ir[31:0]
-//.plot Xbeta.Xbeta2.Xregfile.ra2mux[4:0]
-//.plot Xbeta.Xbeta2.Xregfile.bdata[31:0]
-//.plot Xbeta.Xbeta2.radata[31:0]
-//.plot Xbeta.Xbeta2.ra2sel
-//.plot Xbeta.Xbeta2.rbdata[31:0]
-//.plot Xbeta.Xbeta2.b[31:0]
-//.plot Xbeta.Xbeta2.alufn[5:0]
-//.plot Xbeta.Xbeta2.alu[31:0]
-//.plot ma[31:0]
-//.plot mrd[31:0]
-//.plot Xbeta.Xbeta2.wdata[31:0]
-//.plot Xbeta.Xbeta2.wdsel[1:0]
-//.plot _
-//.plot moe
-//.plot wr
-//.plot mwd[31:0]
-//.plot reg(id[20:16])
-//.plot reg(id[15:11])
-//.plot reg(id[25:21])
-//.plot Xbeta.radata[31:0]
-//.plot Xbeta.z
+.plot Xbeta.Xbeta2.Xregfile.yadata[31:0]
+//.plot Xbeta.Xbeta2.Xregfile.r31a
+.plot Xbeta.Xbeta2.radata[31:0]
+.plot Xbeta.Xbeta2.a[31:0]
+.plot Xbeta.Xbeta2.b[31:0]
+.plot Xbeta.Xbeta2.alu[31:0]
+//.plot Xbeta.Xbeta2.pcr[31:2]
+.plot Xbeta.exe_alu[31:0]
+*/

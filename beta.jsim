@@ -3,14 +3,17 @@
 .include "stdalu.jsim"
 .include "harness.jsim"
 
-.subckt pc clk reset stall z pcsel[1:0] jt[31:2] exe_pcr[30:2] pc[31:2] ia[31:2] pc_annul
+.subckt pc clk reset stall _z pcsel[1:0] jt[31:2] exe_pcr[30:2] pc[31:2] ia[31:2] pc_annul
 
-.connect pc[31] br_pc[31] ia[31]
+.connect exe_pcr[31] pc[31] br_pc[31] ia[31]
 .connect pc[1:0] 0
 .connect ia[1:0] 0
 .connect jt[1:0] 0
 .connect d[1:0] 0
 .connect br_pc[1:0] 0
+
+// buffer z
+Xz _z z buffer_8
 
 // increment pc + 4
 Xpc4 ia[30:2] ci[29:2] vdd pc[30:2] ci[30:2] incrementer
@@ -51,8 +54,10 @@ Xra2 ra2sel#5 rb[4:0] rc[4:0] ra2mux[4:0] mux2
 
 // bypass logic
 Xbypctl reset ra[4:0] ra2mux[4:0] mem_op[31:26] wa_rc[4:0] werf bypa bypb stall bypctl
-Xbypa bypa#32 adata[31:0] wdata[31:0] yadata[31:0] mux2
-Xbypb bypb#32 bdata[31:0] wdata[31:0] ybdata[31:0] mux2
+Xbyfa bypa _bypa buffer_8
+Xbyfb bypb _bypb buffer_8
+Xbypa _bypa#32 adata[31:0] wdata[31:0] yadata[31:0] mux2
+Xbypb _bypb#32 bdata[31:0] wdata[31:0] ybdata[31:0] mux2
 
 Xr31a1 ra[4:3] a1 nand2
 Xr31a2 ra[2:0] a2 nand3
@@ -205,6 +210,18 @@ Xwr reset#2
 + wr  moe
 + mux2
 
+* MOE: LD (0b011000) / LDR (0b011111)
+Xldr0 id[31] ldr0 inverter
+Xldr1 ldr0 id[30:26] ldr1 ldr2 nand3
+Xldr2 ldr1 ldr2 ldr_hit nor2
+
+Xld0 id[31] id[28:26] ld0 nor4
+Xld1 ld0 id[30:29] ld1 nand3
+Xld2 ld1 ld_hit inverter
+
+Xldldr ld_hit ldr_hit xmoe or2
+
+
 * irq flag
 Xirq irq#5
 + _werf _wdsel[1:0] _wr _wasel
@@ -220,72 +237,72 @@ Xst2 st0 st1 _wr and2
 
 * ROM
 Xctl vdd 0 0 id[31:26] // one read port
-+ _wasel _wdsel[1:0] _werf xmoe
-+ $memory width=5 nlocations=64 contents=(
-+ 0b10010 // opcode=0b000000
-+ 0b10010 // opcode=0b000001
-+ 0b10010 // opcode=0b000010
-+ 0b10010 // opcode=0b000011
-+ 0b10010 // opcode=0b000100
-+ 0b10010 // opcode=0b000101
-+ 0b10010 // opcode=0b000110
-+ 0b10010 // opcode=0b000111
-+ 0b10010 // opcode=0b001000
-+ 0b10010 // opcode=0b001001
-+ 0b10010 // opcode=0b001010
-+ 0b10010 // opcode=0b001011
-+ 0b10010 // opcode=0b001100
-+ 0b10010 // opcode=0b001101
-+ 0b10010 // opcode=0b001110
-+ 0b10010 // opcode=0b001111
-+ 0b10010 // opcode=0b010000
-+ 0b10010 // opcode=0b010001
-+ 0b10010 // opcode=0b010010
-+ 0b10010 // opcode=0b010011
-+ 0b10010 // opcode=0b010100
-+ 0b10010 // opcode=0b010101
-+ 0b10010 // opcode=0b010110
-+ 0b10010 // opcode=0b010111
-+ 0b01011 // opcode=0b011000 LD
-+ 0b00000 // opcode=0b011001 ST
-+ 0b10010 // opcode=0b011010 
-+ 0b00010 // opcode=0b011011 JMP
-+ 0b10010 // opcode=0b011100 
-+ 0b00010 // opcode=0b011101 BEQ
-+ 0b00010 // opcode=0b011110 BNE
-+ 0b01011 // opcode=0b011111 LDR
-+ 0b00110 // opcode=0b100000 ADD
-+ 0b00110 // opcode=0b100001 SUB
-+ 0b00110 // opcode=0b100010 MUL
-+ 0b00110 // opcode=0b100011 DIV
-+ 0b00110 // opcode=0b100100 CMPEQ
-+ 0b00110 // opcode=0b100101 CMPLT
-+ 0b00110 // opcode=0b100110 CMPLE
-+ 0b10010 // opcode=0b100111 
-+ 0b00110 // opcode=0b101000 AND
-+ 0b00110 // opcode=0b101001 OR
-+ 0b00110 // opcode=0b101010 XOR
-+ 0b10010 // opcode=0b101011 
-+ 0b00110 // opcode=0b101100 SHL
-+ 0b00110 // opcode=0b101101 SHR
-+ 0b00110 // opcode=0b101110 SRA
-+ 0b10010 // opcode=0b101111 
-+ 0b00110 // opcode=0b110000 ADDC
-+ 0b00110 // opcode=0b110001 SUBC
-+ 0b00110 // opcode=0b110010 MULC
-+ 0b00110 // opcode=0b110011 DIVC
-+ 0b00110 // opcode=0b110100 CMPEQC
-+ 0b00110 // opcode=0b110101 CMPLTC
-+ 0b00110 // opcode=0b110110 CMPLEC
-+ 0b10010 // opcode=0b110111 
-+ 0b00110 // opcode=0b111000 ANDC
-+ 0b00110 // opcode=0b111001 ORC
-+ 0b00110 // opcode=0b111010 XORC
-+ 0b10010 // opcode=0b111011 
-+ 0b00110 // opcode=0b111100 SHLC
-+ 0b00110 // opcode=0b111101 SHRC
-+ 0b00110 // opcode=0b111110 SRAC
-+ 0b10010 // opcode=0b111111 
++ _wasel _wdsel[1:0] _werf
++ $memory width=4 nlocations=64 contents=(
++ 0b1001 // opcode=0b000000
++ 0b1001 // opcode=0b000001
++ 0b1001 // opcode=0b000010
++ 0b1001 // opcode=0b000011
++ 0b1001 // opcode=0b000100
++ 0b1001 // opcode=0b000101
++ 0b1001 // opcode=0b000110
++ 0b1001 // opcode=0b000111
++ 0b1001 // opcode=0b001000
++ 0b1001 // opcode=0b001001
++ 0b1001 // opcode=0b001010
++ 0b1001 // opcode=0b001011
++ 0b1001 // opcode=0b001100
++ 0b1001 // opcode=0b001101
++ 0b1001 // opcode=0b001110
++ 0b1001 // opcode=0b001111
++ 0b1001 // opcode=0b010000
++ 0b1001 // opcode=0b010001
++ 0b1001 // opcode=0b010010
++ 0b1001 // opcode=0b010011
++ 0b1001 // opcode=0b010100
++ 0b1001 // opcode=0b010101
++ 0b1001 // opcode=0b010110
++ 0b1001 // opcode=0b010111
++ 0b0101 // opcode=0b011000 LD
++ 0b0000 // opcode=0b011001 ST
++ 0b1001 // opcode=0b011010 
++ 0b0001 // opcode=0b011011 JMP
++ 0b1001 // opcode=0b011100 
++ 0b0001 // opcode=0b011101 BEQ
++ 0b0001 // opcode=0b011110 BNE
++ 0b0101 // opcode=0b011111 LDR
++ 0b0011 // opcode=0b100000 ADD
++ 0b0011 // opcode=0b100001 SUB
++ 0b0011 // opcode=0b100010 MUL
++ 0b0011 // opcode=0b100011 DIV
++ 0b0011 // opcode=0b100100 CMPEQ
++ 0b0011 // opcode=0b100101 CMPLT
++ 0b0011 // opcode=0b100110 CMPLE
++ 0b1001 // opcode=0b100111 
++ 0b0011 // opcode=0b101000 AND
++ 0b0011 // opcode=0b101001 OR
++ 0b0011 // opcode=0b101010 XOR
++ 0b1001 // opcode=0b101011 
++ 0b0011 // opcode=0b101100 SHL
++ 0b0011 // opcode=0b101101 SHR
++ 0b0011 // opcode=0b101110 SRA
++ 0b1001 // opcode=0b101111 
++ 0b0011 // opcode=0b110000 ADDC
++ 0b0011 // opcode=0b110001 SUBC
++ 0b0011 // opcode=0b110010 MULC
++ 0b0011 // opcode=0b110011 DIVC
++ 0b0011 // opcode=0b110100 CMPEQC
++ 0b0011 // opcode=0b110101 CMPLTC
++ 0b0011 // opcode=0b110110 CMPLEC
++ 0b1001 // opcode=0b110111 
++ 0b0011 // opcode=0b111000 ANDC
++ 0b0011 // opcode=0b111001 ORC
++ 0b0011 // opcode=0b111010 XORC
++ 0b1001 // opcode=0b111011 
++ 0b0011 // opcode=0b111100 SHLC
++ 0b0011 // opcode=0b111101 SHRC
++ 0b0011 // opcode=0b111110 SRAC
++ 0b1001 // opcode=0b111111 
 + )
 
 .ends
@@ -419,6 +436,7 @@ Xmemctl reset irq ir[31:26] wasel wdsel[1:0] werf moe wr memctl
 Xwa_rc ir[25:21] wa_rc[4:0] cnxn
 
 // write data selection
-Xwdsel wdsel[0]#32 wdsel[1]#32 pc[31:2] 0#2 alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
+Xbwdsel wdsel[1:0] _wdsel[1:0] buffer_8
+Xwdsel _wdsel[0]#32 _wdsel[1]#32 pc[31:2] 0#2 alu[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
 
 .ends
