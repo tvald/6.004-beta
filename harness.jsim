@@ -28,8 +28,12 @@ Vreset reset 0 pwl(0ns 3.3v, 9ns 3.3v, 9.1ns 0v)
 // 1e-10/([area]e-12*[ns]e-9)
 
 // BMK = 45.02 @ 310414 mc2
-Vclk clk 0 pulse(3.3,0,3.42ns,.01ns,.01ns,3.42ns)
-.tran 7155ns
+Vclk clk 0 pulse(3.3,0,4.2ns,.01ns,.01ns,4.2ns)
+.tran 10255ns
+
+// BMK = 45.02 @ 310414 mc2
+//Vclk clk 0 pulse(3.3,0,3.42ns,.01ns,.01ns,3.42ns)
+//.tran 7155ns
 
 // BMK = 43.75 @ 310371 mc2
 //Vclk clk 0 pulse(3.3,0,3.52ns,.01ns,.01ns,3.52ns)
@@ -80,6 +84,7 @@ Vclk clk 0 pulse(3.3,0,3.42ns,.01ns,.01ns,3.42ns)
 //.plot reg(Xbeta.Xbeta2.Xregfile.rc[4:0])
 //*/
 
+/*
 .plot Xbeta.Xbeta1.Xbr.z
 .plot Xbeta.Xbeta1.Xbr.br_miss
 .plot Xbeta.Xbeta1.Xbr.br_annul
@@ -87,14 +92,19 @@ Vclk clk 0 pulse(3.3,0,3.42ns,.01ns,.01ns,3.42ns)
 .plot Xbeta.Xbeta1.id[31:0]
 .plot Xbeta.if_ir[31:0]
 .plot Xbeta.st_ir[31:0]
+*/
 
-
-/*
+//*
 .plot Xbeta.Xbeta1.Xbr.z
-.plot Xbeta.Xbeta1.Xbr.br_miss
-.plot Xbeta.Xbeta1.Xbr.miss_pc[31:0]
-.plot Xbeta.Xbeta1.Xbr.stall
-.plot Xbeta.Xbeta1.Xbr.last_flag
+//.plot Xbeta.Xbeta1.Xbr.br_miss
+//.plot Xbeta.Xbeta1.Xbr.miss_pc[31:0]
+.plot Xbeta.Xbeta1.Xbr.pc[31:0]
+.plot Xbeta.Xbeta1.Xbr.id[31:0]
+.plot Xbeta.Xbeta1.Xbr.pcr[31:0]
+.plot Xbeta.Xbeta1.Xbr.br_pred
+.plot Xbeta.Xbeta1.Xbr.pred_pc[31:0]
+//.plot Xbeta.Xbeta1.Xbr.stall
+//.plot Xbeta.Xbeta1.Xbr.last_flag
 .plot Xbeta.Xbeta1.Xbr.br_annul
 .plot Xbeta.Xbeta1.Xpc.br_pc[31:2]
 .plot Xbeta.Xbeta1.Xpc.__d[31:2]

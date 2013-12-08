@@ -3,13 +3,20 @@
 .include "stdalu.jsim"
 .include "harness.jsim"
 
-.subckt pc clk reset stall pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:2] pc_annul
+.subckt pc clk reset stall z pcsel[1:0] jt[31:2] exe_pcr[30:2] pc[31:2] ia[31:2] pc_annul
 
-.connect br_pc[31] ia[31]
-.connect br_pc[1:0] 0
+.connect pc[31] br_pc[31] ia[31]
+.connect pc[1:0] 0
 .connect ia[1:0] 0
 .connect jt[1:0] 0
 .connect d[1:0] 0
+.connect br_pc[1:0] 0
+
+// increment pc + 4
+Xpc4 ia[30:2] ci[29:2] vdd pc[30:2] ci[30:2] incrementer
+
+// reset if need to branch
+Xpc   z#29 pc[30:2] exe_pcr[30:2]  br_pc[30:2]   mux2
 
 Xjt31 ia[31] jt[31] _jt31 and2
 
@@ -25,7 +32,7 @@ Xreset reset#30  _d[31:2] vdd 0#29  d[31:2] mux2
 
 Xregpc d[31:2] clk#30 ia[31:2] dreg
 
-Xannul reset pcsel[1] pcsel[0] pc_annul or3
+Xannul reset pcsel[1] pcsel[0] z pc_annul or4
 
 .ends
 
@@ -284,81 +291,20 @@ Xctl vdd 0 0 id[31:26] // one read port
 .ends
 
 
-
-// BRANCH PREDICTION
-.subckt branch_ctl clk reset _stall ia[31:2] id[31:0] _z br_pc[31:2] last_pc[31:2] last_pcr[31:2] br_annul
-
-// buffers
-Xbuff0 _stall stall buffer_8
-
-// branch instruction flag
-Xb1 id[27:26] b1 xor2
-Xb2 id[31] b2 inverter
-Xb3 b1 b2 b3 nand2
-Xb4 id[30:28] b4 nand3
-Xb5 b3 b4 br_annul reset br_flag nor4
-
-// increment pc + 4
-Xpc4 ia[30:2] ci[29:2] vdd pc[30:2] ci[30:2] incrementer
-.connect pc[31] ia[31]
-.connect pc[1:0] 0
-
-// pc branch / relative offset
-Xidbuf id[15:0] _id[15:0] buffer_8
-Xpcr pc[30:2] _id[15]#13 _id[15:0] 0 pcr[30:2] _ cs_adder29
-.connect pcr[31] ia[31]
-.connect pcr[1:0] 0
-
-// predict whether branch taken (taken if z=1)
-Xbrpred  vdd br_flag _br_pred and2	// for now, always take branch
-Xbrpredbuf _br_pred br_pred buffer_8
-
-// stall
-Xstallflag stall    br_flag   last_flag      st_flag      mux2
-Xstallpred stall    br_pred   last_pred      st_pred      mux2
-Xstallpc   stall#30 pc[31:2]  last_pc[31:2]  st_pc[31:2]  mux2
-Xstallpcr  stall#30 pcr[31:2] last_pcr[31:2] st_pcr[31:2] mux2
-
-// store values for next phase
-Xregpred st_pred clk last_pred dreg	// branch prediction
-Xregflag st_flag clk last_flag dreg	// was branch instruction
-Xregpc   st_pc[31:2]  clk#30 last_pc[31:2]  dreg	// last pc increment
-Xregpcr  st_pcr[31:2] clk#30 last_pcr[31:2] dreg	// last pc branch / relative
-
-// buffers
-Xbuff1 _z z buffer_8
-Xbuff2 _br_annul br_annul buffer_8
-
-// annul if messed up last prediction
-Xbrmiss last_pred z br_miss xor2
-Xannul last_flag br_miss _br_annul and2
-
-// set next pc instruction address
-Xpc_pred br_pred#30  pc[31:2]      pcr[31:2]      pred_pc[31:2] mux2
-Xpc_miss z#30        last_pc[31:2] last_pcr[31:2] miss_pc[31:2] mux2
-Xpc_br   br_annul#30 pred_pc[31:2] miss_pc[31:2]  br_pc[31:2]   mux2
-
-// niceties for graphing
-.connect br_pc[1:0] 0
-.connect pred_pc[1:0] 0
-.connect miss_pc[1:0] 0
-
-.ends
-
-
 // BETA: COMPLETE CIRCUIT
 .subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
 Xirq ia[31] irq 0 _irq mux2  // supervisor bit overrides irq
 
 // IF: INSTRUCTION FETCH
-Xbeta1 clk reset stall z pcsel[1:0] jt[31:2] ia[31:2] id[31:0] if_pc[31:2] if_pcr[31:2] if_ir[31:0] beta_1
+Xbeta1 clk reset stall z pcsel[1:0] jt[31:2] ia[31:2] id[31:0] if_pc[31:2] exe_pcr[31:2] if_ir[31:0] beta_1
 .connect ia[1:0] 0
 
 // IF-EXE BORDER
-Xexepc  if_pc[31:2]  exe_pc[31:2]  cnxn  // registers inside stage 1
-Xexepcr if_pcr[31:2] exe_pcr[31:2] cnxn  // registers inside stage 1
-Xexestall stall#32 if_ir[31:0] exe_ir[31:0] st_ir[31:0] mux2
+Xexepcstall stall#30 if_pc[31:2] exe_pc[31:2] st_pc[31:2]  mux2
+Xexepc  st_pc[31:2]  clk#30 exe_pc[31:2]  dreg	// last pc increment
+Xexeirstall stall#32 if_ir[31:0] exe_ir[31:0] st_ir[31:0] mux2
 Xexeir  st_ir[31:0]  clk#32 exe_ir[31:0]  dreg
+
 
 // EXE: INSTRUCTION EXECUTION
 Xbeta2 clk reset _irq exe_pc[31:2] exe_pcr[31:2] exe_ir[31:0] exe_alu[31:0] exe_wd[31:0] z pcsel[1:0] jt[31:2] werf wasel wa_rc[4:0] wdata[31:0] mem_ir[31:26] stall beta_2
@@ -390,22 +336,16 @@ Xbeta3 reset _irq mem_pc[31:2] rmem_ir[31:0] mem_alu[31:0] moe mrd[31:0] wr werf
 
 
 // BETA STAGE 1: INSTRUCTION FETCH
-.subckt beta_1 clk reset _stall z pcsel[1:0] jt[31:2] ia[31:2] id[31:0] pc[31:2] pcr[31:2] ir[31:0]
+.subckt beta_1 clk reset _stall z pcsel[1:0] jt[31:2] ia[31:2] id[31:0] pc[31:2] exe_pcr[31:2] ir[31:0]
 
-* stall override
-//Xbrpcannul br_annul pc_annul not_brpc_annul nor2
-//Xstall not_brpc_annul _stall vstall nand2
-//Xstinv vstall stall inverter_8
+* stall buffer
 Xstbuf _stall stall buffer_8
 
 * PC Control
-Xpc clk reset stall pcsel[1:0] jt[31:2] br_pc[30:2] ia[31:2] pc_annul pc
-
-* Branch Control
-Xbr clk reset stall ia[31:2] id[31:0] z br_pc[31:2] pc[31:2] pcr[31:2] br_annul branch_ctl
+Xpc clk reset stall z pcsel[1:0] jt[31:2] exe_pcr[30:2] pc[31:2] ia[31:2] pc_annul pc
 
 * annul logic, defaulting IR[31:0] to ADD(R31,R31,R31)=0x87FFFF
-Xannulchk pc_annul br_annul stall _annul or3
+Xannulchk pc_annul stall _annul or2
 Xannulbuf _annul annul buffer_8
 Xannul annul#32 id[31:0] vdd 0#5 vdd#26  ir[31:0] mux2
 
@@ -431,11 +371,28 @@ Xrc ir[25:21] rc[4:0] cnxn
 
 Xregfile clk reset werf wasel ra2sel ra[4:0] rb[4:0] rc[4:0] wa_rc[4:0] wdata[31:0] radata[31:0] rbdata[31:0] mem_op[31:26] stall regfile
 
+// pc branch / relative offset
+Xidbuf ir[15:0] _ir[15:0] buffer_8
+Xpcr pc[30:2] _ir[15]#13 _ir[15:0] 0 pcr[30:2] _ cs_adder29
+.connect pcr[31] pc[31]
+.connect pcr[1:0] 0
+
 * calculate Z (reg[A]==0)
 Xznor radata[31:0] znor[7:0] nor4
 Xznan znor[7:0] znan[1:0] nand4
-Xzout znan[1:0] _z nor2
-Xzmod _z ir[27] z xor2
+Xzall znan[1:0] _z nor2
+Xzmod _z ir[27] zmod xor2
+
+// branch instruction flag
+Xb1 ir[27:26] br1 xor2
+Xb2 ir[31] br2 inverter
+Xb3 br1 br2 br3 nand2
+Xb4 ir[30:28] br4 nand3
+Xb5 br3 br4 reset br_flag nor3
+
+// z output
+Xzout zmod br_flag z and2
+
 
 * route JT
 Xjt radata[31:2] jt[31:2] cnxn
